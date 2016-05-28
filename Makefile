@@ -1,5 +1,5 @@
 # Path to folder containing archive data (index.json, epub/)
-ARCHIVE=fimfarchive-20160525
+ARCHIVE=res/fimfarchive-20160525
 
 EBOOK_CONVERT=ebook-convert
 
