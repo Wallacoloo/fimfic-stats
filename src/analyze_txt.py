@@ -4,10 +4,13 @@ associations to a json file
 """
 
 import json, re, sys
+from nltk.corpus import sentiwordnet as swn
 # Sentence boundary occurs as punctuation (. ! ?) followed by at least
 # one space, followed by a capital letter. Note that double-qoutes in
 # in this region should be accepted (entering or leaving a quote).
 sentence_boundary = re.compile(r'(?<=[.!?])"?\s+"?(?=[A-Z])', re.M)
+word_boundary = re.compile(r'\s')
+valid_word_chars = "-_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 characters = ["Applejack", "Fluttershy", "Pinkie Pie", "Rainbow Dash", "Rarity", "Twilight Sparkle"]
 
@@ -16,9 +19,15 @@ def rank_sentiment(s):
     This is done using data from SentiWordNet, which ranks words based
     on their: positivity, negativity and objectivity.
     """
-    # nltk interface documented: http://www.nltk.org/howto/sentiwordnet.html
-    # TODO: implement
-    return 0
+    # nltk SentiWordNet example: http://www.nltk.org/howto/sentiwordnet.html
+    rank = 0
+    for word_raw in re.split(word_boundary, s):
+        word = "".join(c for c in word_raw if c in valid_word_chars)
+        # each word can match multiple (or 0) uses
+        matches = list(swn.senti_synsets(word))
+        if matches: # avoid div-by-0
+            rank += sum(m.pos_score() - m.neg_score() for m in matches)/len(matches)
+    return rank
 
 def analyze(f):
     """Return a dict of information about the file f"""
