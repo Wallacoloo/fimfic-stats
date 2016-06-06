@@ -7,7 +7,48 @@ import json, sys
 from nltk import tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-characters = ("Applejack", "Fluttershy", "Pinkie Pie", "Rainbow Dash", "Rarity", "Twilight Sparkle")
+# There is some bias here based on which characters I consider important
+# enough to track. My intention is mainly to analyze the main 6, though
+# and beyond that most of this data is probably not going to be used
+# anyway.
+characters = {
+        # Main 6 + Spike
+        "Applejack": ("Applejack",),
+        "Fluttershy": ("Fluttershy",),
+        "Pinkie Pie": ("Pinkie Pie", "Pinkie",),
+        "Rainbow Dash": ("Rainbow Dash", "Rainbow", "Dash",),
+        "Rarity": ("Rarity",),
+        "Twilight Sparkle": ("Twilight Sparkle", "Twilight", "Sparkle",),
+        "Spike": ("Spike",),
+        # CMC
+        "Apple Bloom": ("Apple Bloom",),
+        "Scootaloo": ("Scootaloo",),
+        "Sweetie Belle": ("Sweetie Belle", "Sweetie",),
+        "Babs Seed": ("Babs Seed", "Babs",),
+        # Royalty
+        # 'Princess' and 'Principal' have no sentiment in VADER, so we
+        # don't have to worry about those titles
+        "Celestia": ("Celestia",),
+        "Luna": ("Luna",),
+        "Cadance": ("Cadance",),
+        "Shining Armor": ("Shining Armor", "Shining",),
+        "Flurry Heart": ("Flurry Heart",),
+        # Recurring Villains (possibly reformed)
+        "Nightmare Moon": ("Nightmare Moon",),
+        "Discord": ("Discord",),
+        "Gilda": ("Gilda",),
+        # Trixie is VERY commonly associated with 'great' and 'powerful',
+        # but at least remove these words when used as a title
+        "Trixie": ("Trixie", "Great and Powerful Trixie",
+            "Great And Powerful Trixie", "great and powerful Trixie",),
+        # These characters often appear by their nicknames, but their
+        # nicknames are easily confused with nouns when occuring at the
+        # start of a sentence
+        #"Sunset Shimmer": ("Sunset Shimmer", "Sunset"),
+        #"Starlight Glimmer": ("Starlight Glimmer", "Starlight"),
+        # hack to track the sentiment of the overall text
+        "text": (),
+}
 
 sid = SentimentIntensityAnalyzer()
 
@@ -17,17 +58,29 @@ def analyze(f):
     print(sentences)
 
     sentiment = {}
-    for c in characters + ("text",):
+    for c in characters:
         sentiment[c] = {"raw": []}
 
     for s in sentences:
+        # Try to assign the sentiment to a SINGLE character
+        c_in_s = {}
+        for c, nicks in characters.items():
+            for nick in nicks:
+                if nick in s:
+                    c_in_s[c] = c_in_s.get(c, []) + [nick]
+
+        # Replace all character names with a neutral word
+        # sum() is used to flatten the dict items
+        for nick in sum(c_in_s.values(), []):
+            s = s.replace(nick, "it")
+
         compound = sid.polarity_scores(s)["compound"]
         # Track sentiment of the overall text
         sentiment["text"]["raw"].append(compound)
-        # Try to assign the sentiment to a SINGLE character
-        c_in_s = [c for c in characters if c in s]
+
+        # Attribute the sentiment to a single character, if applicable
         if len(c_in_s) == 1:
-            c = c_in_s[0]
+            c, = c_in_s.keys()
             sentiment[c]["raw"].append(compound)
 
     # Compute average sentiments per character and entire text
