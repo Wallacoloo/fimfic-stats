@@ -3,9 +3,13 @@
 associations to a json file
 """
 
-import json, sys
+import json, sys, warnings
 from nltk import tokenize
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+with warnings.catch_warnings():
+    # The nltk.twitter library emits a completely irrelevant warning
+    # about not having twython installed; silence that.
+    warnings.simplefilter("ignore", UserWarning)
+    from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 # There is some bias here based on which characters I consider important
 # enough to track. My intention is mainly to analyze the main 6, though
@@ -39,8 +43,9 @@ characters = {
         "Gilda": ("Gilda",),
         # Trixie is VERY commonly associated with 'great' and 'powerful',
         # but at least remove these words when used as a title
-        "Trixie": ("Trixie", "Great and Powerful Trixie",
-            "Great And Powerful Trixie", "great and powerful Trixie",),
+        "Trixie": ("Great and Powerful Trixie",
+            "Great And Powerful Trixie", "great and powerful Trixie",
+            "Trixie",),
         # These characters often appear by their nicknames, but their
         # nicknames are easily confused with nouns when occuring at the
         # start of a sentence
@@ -55,7 +60,6 @@ sid = SentimentIntensityAnalyzer()
 def analyze(f):
     """Return a dict of information about the file f"""
     sentences = tokenize.sent_tokenize(f.read())
-    print(sentences)
 
     sentiment = {}
     for c in characters:
@@ -67,11 +71,12 @@ def analyze(f):
         for c, nicks in characters.items():
             for nick in nicks:
                 if nick in s:
-                    c_in_s[c] = c_in_s.get(c, []) + [nick]
+                    c_in_s[c] = nick
+                    break
 
         # Replace all character names with a neutral word
         # sum() is used to flatten the dict items
-        for nick in sum(c_in_s.values(), []):
+        for nick in c_in_s.values():
             s = s.replace(nick, "it")
 
         compound = sid.polarity_scores(s)["compound"]
