@@ -79,6 +79,14 @@ def analyze(f):
         for nick in c_in_s.values():
             s = s.replace(nick, "it")
 
+        if len(s) > 5000:
+            # VADER seems to hang on exceptionally long sentences.
+            # 5000 characters seems excessive for a single sentence,
+            # and no doubt, it is. Thank "The Longest Trollfic Ever",
+            # by "Troll": https://www.fimfiction.net/story/30328/the-longest-trollfic-ever
+            print("Warning: sentence is > 5000 chars. Skipping: %s [...]" %s[:400])
+            break
+
         compound = sid.polarity_scores(s)["compound"]
         # Track sentiment of the overall text
         sentiment["text"]["raw"].append(compound)
