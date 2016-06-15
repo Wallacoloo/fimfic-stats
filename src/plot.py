@@ -4,6 +4,7 @@
 
 import datetime, json, os.path, sys
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 
 from common import main6
 
@@ -15,6 +16,9 @@ colors = {
     "Rarity": "#BEC2C3",
     "Twilight Sparkle": "#D19FE4"
 }
+
+legendFont = FontProperties()
+legendFont.set_size('small')
 
 def char_senti_by_month(agg):
     """Create a plot displaying typical character sentiment
@@ -39,8 +43,8 @@ def char_senti_by_month(agg):
     plt.title("Character sentiment vs. Time")
 
     #plt.xlim(0, 6)
-    #plt.ylim(-5, 80)
-    plt.legend(loc="upper left")
+    #plt.ylim(0.00, 0.15)
+    plt.legend(loc="best", prop=legendFont)
 
 
 
@@ -57,4 +61,4 @@ if __name__ == "__main__":
         aggregated = json.loads(open(aggregated_path, "r").read())
         gen_figure = figure_functions[os.path.split(out_path)[-1]]
         out_figure = gen_figure(aggregated)
-        plt.savefig(out_path)
+        plt.savefig(out_path, dpi=300)
