@@ -2,23 +2,46 @@
 """Plots the various aggregated data
 """
 
-# Note: this code depends on Plotly, but DOES NOT REQUIRE AN ONLINE LICENSE.
-# NO setup is required for plotly, except installation of python-plotly
-# (through pip or your OS package manager)
-import json, os.path, sys
-import plotly.plotly as py
-from plotly.graph_objs import Scatter, Figure, Layout
+import datetime, json, os.path, sys
+import matplotlib.pyplot as plt
 
 from common import main6
+
+colors = {
+    "Applejack": "#FCBA63",
+    "Fluttershy": "#FDF6AE",
+    "Pinkie Pie": "#F6B7D2",
+    "Rainbow Dash": "#9EDBF8",
+    "Rarity": "#BEC2C3",
+    "Twilight Sparkle": "#D19FE4"
+}
 
 def char_senti_by_month(agg):
     """Create a plot displaying typical character sentiment
     on fimfiction vs time.
     """
-    data = [Scatter(x=[1, 2, 3], y=[3, 1, 6])]
-    layout = Layout(title="Character Sentiment vs. Time")
-    fig = Figure(data=data, layout=layout)
-    return fig
+    plt.figure
+
+    # Prepare data
+    pdata = {}
+    for char in main6:
+        xdata = [datetime.datetime(year=2010+int(i/12), month=i%12+1, day=1) for i in range(100)]
+        ydata = [month["sum"]/max(1, month["count"]) for month in agg["sentiment"][char]["months"] ]
+        pdata[char] = [xdata, ydata]
+
+    # Plot data
+    for char, cdata in pdata.items():
+        plt.plot_date(cdata[0], cdata[1], '-', label=char, color=colors[char])
+
+    # Labels
+    plt.xlabel("Year")
+    plt.ylabel("Average compound sentiment")
+    plt.title("Character sentiment vs. Time")
+
+    #plt.xlim(0, 6)
+    #plt.ylim(-5, 80)
+    plt.legend(loc="upper left")
+
 
 
 figure_functions = { \
@@ -34,4 +57,4 @@ if __name__ == "__main__":
         aggregated = json.loads(open(aggregated_path, "r").read())
         gen_figure = figure_functions[os.path.split(out_path)[-1]]
         out_figure = gen_figure(aggregated)
-        py.image.save_as(out_figure, out_path)
+        plt.savefig(out_path)

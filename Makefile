@@ -28,6 +28,7 @@ $(AGG_FILE): $(SENTIMENTS)
 
 # Generate plots:
 %.png: $(AGG_FILE)
+	mkdir -p $(dir $@)
 	./src/plot.py $(AGG_FILE) $@
 
 clean-json:
