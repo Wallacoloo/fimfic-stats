@@ -24,13 +24,16 @@ def char_senti_by_month(agg):
     """Create a plot displaying typical character sentiment
     on fimfiction vs time.
     """
-    plt.figure
+    plt.figure(figsize=(12, 8), dpi=180)
 
     # Prepare data
     pdata = {}
     for char in main6:
-        xdata = [datetime.datetime(year=2010+int(i/12), month=i%12+1, day=1) for i in range(100)]
-        ydata = [month["sum"]/max(1, month["count"]) for month in agg["sentiment"][char]["months"] ]
+        monthdata = agg["sentiment"][char]["months"]
+        startidx = min(i for i in range(100) if monthdata[i]["count"])
+        lastidx = max(i for i in range(100) if monthdata[i]["count"])
+        xdata = [datetime.datetime(year=2010+int(i/12), month=i%12+1, day=1) for i in range(startidx, lastidx+1)]
+        ydata = [month["sum"]/max(1, month["count"]) for month in agg["sentiment"][char]["months"][startidx:lastidx+1] ]
         pdata[char] = [xdata, ydata]
 
     # Plot data
@@ -61,4 +64,4 @@ if __name__ == "__main__":
         aggregated = json.loads(open(aggregated_path, "r").read())
         gen_figure = figure_functions[os.path.split(out_path)[-1]]
         out_figure = gen_figure(aggregated)
-        plt.savefig(out_path, dpi=300)
+        plt.savefig(out_path)
