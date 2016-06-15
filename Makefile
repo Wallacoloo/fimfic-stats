@@ -7,9 +7,11 @@ EBOOK_CONVERT=ebook-convert
 EPUBS=$(patsubst $(ARCHIVE)/epub/%,%,$(shell find $(ARCHIVE)/epub/ -name *.epub))
 TXTS=$(addprefix build/,$(EPUBS:.epub=.txt))
 SENTIMENTS=$(TXTS:.txt=.sentiment.json)
+AGG_FILE=build/aggregated.json
+PLOTS=$(addprefix build/plot/,char_senti_by_month.png)
 
 
-all: $(SENTIMENTS)
+all: $(PLOTS)
 
 # Convert epub to txt
 build/%.txt: $(ARCHIVE)/epub/%.epub
@@ -19,6 +21,14 @@ build/%.txt: $(ARCHIVE)/epub/%.epub
 # Create sentiment analysis 
 %.sentiment.json: %.txt
 	./src/analyze_senti.py $^ $@
+
+# Aggregate analyses
+$(AGG_FILE): $(SENTIMENTS)
+	./src/aggregate.py $(ARCHIVE)/index.json build/ $@
+
+# Generate plots:
+%.png: $(AGG_FILE)
+	./src/plot.py $(AGG_FILE) $@
 
 clean-json:
 	find build/ -name *.json | xargs rm -f

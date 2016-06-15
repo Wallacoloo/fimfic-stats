@@ -45,3 +45,5 @@ characters = {
         # hack to track the sentiment of the overall text
         "text": (),
 }
+
+main6 = ["Applejack", "Fluttershy", "Pinkie Pie", "Rainbow Dash", "Rarity", "Twilight Sparkle"]

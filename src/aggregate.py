@@ -21,6 +21,16 @@ def files_of_type(srcdir, ext):
             if f.endswith(ext):
                 yield os.path.join(root, f)
 
+def avg_data_at_percent(data, percent):
+    """Given an array of numbers, return the average value at any percent in the data.
+    0 and 100 (percent) are inclusive. This is done by making the first
+    and last percent on half-length.
+    """
+    idx_start = int(max(0, (percent-0.5)*len(data)))
+    idx_end = int(min(len(data), (percent+0.5)*len(data)))
+    idx_end = max(idx_start+1, idx_end) # need at least one sample.
+    return average(data[idx_start:idx_end])
+
 def aggregate(index, src_paths):
     """Perform several analyses on the .json results in src_paths.
     """
@@ -30,8 +40,11 @@ def aggregate(index, src_paths):
     for c in tuple(characters.keys()) + ("text",):
         # Each month contains a sum of sentiment and a count of sentiments
         # which can be used to derive the average
-        sentiment[c] = {"months":
-                [ {"sum": 0, "count": 0} for i in range(100)]
+        sentiment[c] = {
+            # average sentence sentiment by month since Jan 2010
+            "months": [ {"sum": 0, "count": 0} for i in range(100)],
+            # Average sentence sentiment at any point through a story.
+            "storyarc_percent": [ {"sum": 0, "count": 0} for i in range(101)]
         }
 
     for srcno, p in enumerate(src_paths):
@@ -52,6 +65,9 @@ def aggregate(index, src_paths):
             senti = datum["sentiment"][c]["raw"]
             sentiment[c]["months"][pub_month]["sum"] += sum(senti)
             sentiment[c]["months"][pub_month]["count"] += len(senti)
+            for percent in range(101):
+                sentiment[c]["storyarc_percent"][percent]["sum"] += avg_data_at_percent(senti, percent)
+                sentiment[c]["storyarc_percent"][percent]["count"] += 1
 
     return results
 
