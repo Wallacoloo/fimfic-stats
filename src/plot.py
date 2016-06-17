@@ -9,13 +9,15 @@ from matplotlib.font_manager import FontProperties
 
 from common import main6
 
+# Based on http://helmet.kafuka.org/ponycolors/
 colors = {
     "Applejack": "#FCBA63",
-    "Fluttershy": "#FDF6AE",
+    "Fluttershy": "#F0DA75",
     "Pinkie Pie": "#F6B7D2",
     "Rainbow Dash": "#9EDBF8",
     "Rarity": "#BEC2C3",
-    "Twilight Sparkle": "#D19FE4"
+    "Twilight Sparkle": "#D19FE4",
+    "text": "#101010",
 }
 
 legendFont = FontProperties()
@@ -42,10 +44,13 @@ def smooth(month_data):
     # yk[0] y[n-0] + yk[1] y[n-1] + ... = DC(xk[0]x[n-0] + xk[1]x[n-1] + ... )
     def filt(x, y, n):
         # Follow the equation further up to solve for y[n-0]
-        # For non-existant y[-r], x[-r], we ignore those terms altogether.
-        # (equivalent to setting y[-r], x[-r] = 0
-        rhs = DC*sum(x[n-k] * xk[k] for k in range(3) if n-k >= 0)
-        other_y = sum(y[n-k] * yk[k] for k in range(1, 3) if n-k >= 0)
+        # When indexing x[n-k], y[n-k] for n-k < 0, we assume a
+        # steady-state value for n-k <= 0
+        if n == 0:
+            return x[0]
+
+        rhs = DC*sum(x[max(0, n-k)] * xk[k] for k in range(3))
+        other_y = sum(y[max(0, n-k)] * yk[k] for k in range(1, 3))
         this_y = (rhs - other_y) / yk[0]
         return this_y
 
@@ -57,7 +62,7 @@ def smooth(month_data):
     return y
 
 
-def char_senti_by_month(agg, do_smooth=False):
+def char_senti_by_month(agg, chars=main6, do_smooth=False):
     """Create a plot displaying typical character sentiment
     on fimfiction vs time.
     """
@@ -65,7 +70,7 @@ def char_senti_by_month(agg, do_smooth=False):
 
     # Prepare data
     pdata = {}
-    for char in main6:
+    for char in chars:
         monthdata = agg["sentiment"][char]["months"]
         startidx = min(i for i in range(100) if monthdata[i]["count"])
         lastidx = max(i for i in range(100) if monthdata[i]["count"])
@@ -77,24 +82,26 @@ def char_senti_by_month(agg, do_smooth=False):
 
     # Plot data
     for char, cdata in pdata.items():
-        plt.plot_date(cdata[0], cdata[1], '-', label=char, color=colors[char])
+        plt.plot_date(cdata[0], cdata[1], '-', label=char, color=colors[char], lw=2.5)
 
     # Labels
     plt.xlabel("Year")
     plt.ylabel("Average compound sentiment")
-    plt.title("Character sentiment vs. Time")
+    title_pre = "Full-text" if chars == ("text",) else "Character"
+    title_post = " (smoothed)" if do_smooth else ""
+    plt.title(title_pre + " sentiment vs. time" + title_post)
 
     #plt.xlim(0, 6)
-    #plt.ylim(0.00, 0.15)
-    plt.legend(loc="best", prop=legendFont)
-
-def char_senti_by_month_smooth(agg):
-    return char_senti_by_month(agg, do_smooth=True)
+    plt.ylim(0.00, 0.13)
+    if len(pdata) > 1:
+        plt.legend(loc="best", prop=legendFont)
 
 
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
-    "char_senti_by_month_smooth.png": char_senti_by_month_smooth,
+    "char_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, do_smooth=True),
+    "text_senti_by_month.png": lambda agg: char_senti_by_month(agg, chars=("text",)),
+    "text_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, chars=("text",), do_smooth=True),
 }
 
 
