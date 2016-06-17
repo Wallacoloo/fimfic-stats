@@ -8,7 +8,7 @@ EPUBS=$(patsubst $(ARCHIVE)/epub/%,%,$(shell find $(ARCHIVE)/epub/ -name *.epub)
 TXTS=$(addprefix build/,$(EPUBS:.epub=.txt))
 SENTIMENTS=$(TXTS:.txt=.sentiment.json)
 AGG_FILE=build/aggregated.json
-PLOTS=$(addprefix build/plot/,char_senti_by_month.png)
+PLOTS=$(addprefix build/plot/,char_senti_by_month.png char_sent_by_month_smooth.png)
 
 
 all: $(PLOTS)
