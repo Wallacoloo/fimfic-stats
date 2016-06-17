@@ -26,8 +26,8 @@ def avg_data_at_percent(data, percent):
     0 and 100 (percent) are inclusive. This is done by making the first
     and last percent on half-length.
     """
-    idx_start = int(max(0, (percent-0.5)*len(data)))
-    idx_end = int(min(len(data), (percent+0.5)*len(data)))
+    idx_start = int(max(0, (percent-0.5)/100*len(data)))
+    idx_end = int(min(len(data), (percent+0.5)/100*len(data)))
     idx_end = max(idx_start+1, idx_end) # need at least one sample.
     return average(data[idx_start:idx_end])
 
