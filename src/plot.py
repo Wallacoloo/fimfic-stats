@@ -25,13 +25,16 @@ legendFont.set_size('small')
 
 cot = lambda x: 1/tan(x)
 
-def smooth(month_data):
+def smooth(month_data=None, percent_data=None):
     """Smooth month-based data so that the long-term trends are more visible
     """
     # Work based on http://www.claysturner.com/dsp/Butterworth%20Filter%20Formulae.pdf
     # data is sampled by months, want trends > 6 months to be visible
     # Use fc =~ 1/6
-    fc = 1/12
+    if month_data is not None:
+        fc = 1/12
+    if percent_data is not None:
+        fc = 1/25
     c = cot(pi*fc)
     # Second order LPF butterworth:
     alpha = 2*cos(pi/4)
@@ -54,7 +57,7 @@ def smooth(month_data):
         this_y = (rhs - other_y) / yk[0]
         return this_y
 
-    x = month_data
+    x = month_data or percent_data
     y = []
     for n in range(len(x)):
         y.append(filt(x, y, n))
@@ -96,12 +99,45 @@ def char_senti_by_month(agg, chars=main6, do_smooth=False):
     if len(pdata) > 1:
         plt.legend(loc="best", prop=legendFont)
 
+def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False):
+    """Plot the sentiment of the average story at any percentage through
+    that story
+    """
+    plt.figure(figsize=(12, 8), dpi=180)
+
+    # Prepare data
+    pdata = {}
+    for char in chars:
+        percdata = agg["sentiment"][char]["storyarc_percent"]
+        xdata = range(101)
+        ydata = [percent["sum"]/max(1, percent["count"]) for percent in percdata ]
+        if do_smooth:
+            ydata = smooth(percent_data=ydata)
+        pdata[char] = [xdata, ydata]
+
+    # Plot data
+    for char, cdata in pdata.items():
+        plt.plot(cdata[0], cdata[1], '-', label=char, color=colors[char], lw=2.5)
+
+    # Labels
+    plt.xlabel("Percent into story")
+    plt.ylabel("Average compound sentiment")
+    title_pre = "Sentence" if chars == ("text",) else "Character"
+    title = title_pre + " sentiment by location within story"
+    plt.title(title)
+
+    plt.ylim(0.00, 0.13)
+    if len(pdata) > 1:
+        plt.legend(loc="best", prop=legendFont)
+
 
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
     "char_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, do_smooth=True),
     "text_senti_by_month.png": lambda agg: char_senti_by_month(agg, chars=("text",)),
     "text_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, chars=("text",), do_smooth=True),
+    "text_senti_by_storyarc.png": text_senti_by_storyarc,
+    "char_senti_by_storyarc.png": lambda agg: text_senti_by_storyarc(agg, chars=main6),
 }
 
 
