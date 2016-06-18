@@ -7,7 +7,7 @@ from math import cos, pi, tan
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
-from common import main6
+from common import main6, story_length
 
 # Based on http://helmet.kafuka.org/ponycolors/
 colors = {
@@ -69,8 +69,6 @@ def char_senti_by_month(agg, chars=main6, do_smooth=False):
     """Create a plot displaying typical character sentiment
     on fimfiction vs time.
     """
-    plt.figure(figsize=(12, 8), dpi=180)
-
     # Prepare data
     pdata = {}
     for char in chars:
@@ -99,25 +97,39 @@ def char_senti_by_month(agg, chars=main6, do_smooth=False):
     if len(pdata) > 1:
         plt.legend(loc="best", prop=legendFont)
 
-def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False):
+def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False, arcs=("",)):
     """Plot the sentiment of the average story at any percentage through
     that story
     """
-    plt.figure(figsize=(12, 8), dpi=180)
+
+    storyarc_length_map = dict(
+        _short="<{} sentences".format(story_length.short),
+        _med="{}-{} sentences".format(story_length.short+1, story_length.med),
+        _long=">{} sentences".format(story_length.med)
+    )
 
     # Prepare data
     pdata = {}
     for char in chars:
-        percdata = agg["sentiment"][char]["storyarc_percent"]
-        xdata = range(101)
-        ydata = [percent["sum"]/max(1, percent["count"]) for percent in percdata ]
-        if do_smooth:
-            ydata = smooth(percent_data=ydata)
-        pdata[char] = [xdata, ydata]
+        for arc in arcs:
+            percdata = agg["sentiment"][char]["storyarc_percent" + arc]
+            xdata = range(101)
+            ydata = [percent["sum"]/max(1, percent["count"]) for percent in percdata ]
+            if do_smooth:
+                ydata = smooth(percent_data=ydata)
+            if len(arcs) == 1:
+                lbl = char
+            elif len(chars) == 1:
+                lbl = storyarc_length_map[arc]
+            else:
+                # Have multiple characters AND bins
+                lbl = "{} ({})".format(char, storyarc_length_map[arc])
+
+            pdata[lbl] = [xdata, ydata]
 
     # Plot data
     for char, cdata in pdata.items():
-        plt.plot(cdata[0], cdata[1], '-', label=char, color=colors[char], lw=2.5)
+        plt.plot(cdata[0], cdata[1], '-', label=char, color=colors.get(char, None), lw=2.5)
 
     # Labels
     plt.xlabel("Percent into story")
@@ -130,6 +142,33 @@ def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False):
     if len(pdata) > 1:
         plt.legend(loc="best", prop=legendFont)
 
+def story_lengths(agg):
+    """Plot a histogram depicting the lengths of stories on fimfiction
+    """
+
+    plt.figure(figsize=(14, 8), dpi=180)
+    lengths = agg["story_lengths"]
+    lengths.sort()
+    #print(len([l for l in lengths if l <= 100]))
+    #print(len([l for l in lengths if l <= 200]))
+    #print(len([l for l in lengths if l >= 1000]))
+    #print(len([l for l in lengths if l >= 1500]))
+    #print(len([l for l in lengths if l >= 2000]))
+    #print(len([l for l in lengths if l >= 2500]))
+    #print(len([l for l in lengths if 100 < l < 1000]))
+    #print(len([l for l in lengths if 100 < l < 1500]))
+    # As of now, there are only 6 stories > 100000 sentences in length:
+    # 100545, 106312, 106491, 133191, 136195, 151190 sentences
+    # They are not even visible on a histogram
+    lengths = [l for l in lengths if l < 100000]
+    plt.hist(lengths, bins=10000)
+    plt.xscale("log")
+
+    plt.xlabel("Length (sentences)")
+    plt.ylabel("Count")
+    plt.title("Number of stories by length")
+
+
 
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
@@ -138,6 +177,12 @@ figure_functions = { \
     "text_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, chars=("text",), do_smooth=True),
     "text_senti_by_storyarc.png": text_senti_by_storyarc,
     "char_senti_by_storyarc.png": lambda agg: text_senti_by_storyarc(agg, chars=main6),
+    "text_senti_by_storyarc_binned.png": lambda agg: text_senti_by_storyarc(agg, arcs=("_short", "_med", "_long")),
+    "char_senti_by_storyarc_binned.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_short", "_med", "_long")),
+    "char_senti_by_storyarc_short.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_short",)),
+    "char_senti_by_storyarc_med.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_med",)),
+    "char_senti_by_storyarc_long.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_long",)),
+    "story_lengths.png": story_lengths
 }
 
 
@@ -148,5 +193,7 @@ if __name__ == "__main__":
         aggregated_path, out_path = sys.argv[1:]
         aggregated = json.loads(open(aggregated_path, "r").read())
         gen_figure = figure_functions[os.path.split(out_path)[-1]]
+
+        plt.figure(figsize=(12, 8), dpi=180)
         out_figure = gen_figure(aggregated)
         plt.savefig(out_path)

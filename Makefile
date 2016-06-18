@@ -11,6 +11,10 @@ AGG_FILE=build/aggregated.json
 PLOTS=$(addprefix build/plot/, \
 	char_senti_by_month.png char_senti_by_month_smooth.png \
 	text_senti_by_month.png text_senti_by_month_smooth.png \
+	char_senti_by_storyarc.png text_senti_by_storyarc.png \
+	char_senti_by_storyarc_short.png char_senti_by_storyarc_med.png \
+	char_senti_by_storyarc_long.png \
+	story_lengths.png \
 )
 
 

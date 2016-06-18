@@ -47,3 +47,8 @@ characters = {
 }
 
 main6 = ["Applejack", "Fluttershy", "Pinkie Pie", "Rainbow Dash", "Rarity", "Twilight Sparkle"]
+
+class story_length:
+    # Short stories have <= `short' sentences
+    short = 100
+    med = 2500
