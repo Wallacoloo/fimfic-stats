@@ -16,7 +16,7 @@ PLOTS=$(addprefix build/plot/, \
 	char_senti_by_storyarc_long.png \
 	text_senti_by_storyarc_binned.png \
 	character_mentions_in_a_sentence.png character_mentions_in_a_story.png \
-	story_lengths.png \
+	story_lengths.png story_lengths_lin_bins.png \
 )
 
 

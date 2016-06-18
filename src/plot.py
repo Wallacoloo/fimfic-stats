@@ -159,26 +159,23 @@ def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False, arcs=("",)):
     if len(pdata) > 1:
         plt.legend(loc="best", prop=legendFont)
 
-def story_lengths(agg):
+def story_lengths(agg, log_bins=True):
     """Plot a histogram depicting the lengths of stories on fimfiction
     """
 
     plt.figure(figsize=(14, 8), dpi=180)
     lengths = agg["story_lengths"]
     lengths.sort()
-    #print(len([l for l in lengths if l <= 100]))
-    #print(len([l for l in lengths if l <= 200]))
-    #print(len([l for l in lengths if l >= 1000]))
-    #print(len([l for l in lengths if l >= 1500]))
-    #print(len([l for l in lengths if l >= 2000]))
-    #print(len([l for l in lengths if l >= 2500]))
-    #print(len([l for l in lengths if 100 < l < 1000]))
-    #print(len([l for l in lengths if 100 < l < 1500]))
     # As of now, there are only 6 stories > 100000 sentences in length:
     # 100545, 106312, 106491, 133191, 136195, 151190 sentences
     # They are not even visible on a histogram
     lengths = [l for l in lengths if l < 100000]
-    plt.hist(lengths, bins=10000)
+    if log_bins:
+        bins = [int(10**(i*5/100)) for i in range(101)]
+        bins = list(range(1, 11)) + [i for i in bins if i>10]
+    else:
+        bins=10000
+    plt.hist(lengths, bins=bins)
     plt.xscale("log")
 
     plt.xlabel("Length (sentences)")
@@ -224,6 +221,7 @@ figure_functions = { \
     "char_senti_by_storyarc_med.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_med",)),
     "char_senti_by_storyarc_long.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_long",)),
     "story_lengths.png": story_lengths,
+    "story_lengths_lin_bins.png": lambda agg: story_lengths(agg, log_bins=False),
     "character_mentions_in_a_sentence.png": character_mentions,
     "character_mentions_in_a_story.png": lambda agg: character_mentions(agg, mode="story"),
 }
