@@ -16,16 +16,16 @@ characters = {
         "Twilight Sparkle": ("Twilight Sparkle", "Twilight", "Sparkle",),
         "Spike": ("Spike",),
         # CMC
-        "Apple Bloom": ("Apple Bloom",),
+        "Apple Bloom": ("Apple Bloom", "Applebloom"),
         "Scootaloo": ("Scootaloo",),
-        "Sweetie Belle": ("Sweetie Belle", "Sweetie",),
-        "Babs Seed": ("Babs Seed", "Babs",),
+        "Sweetie Belle": ("Sweetie Belle", "Sweetie", "Sweetiebelle"),
+        "Babs Seed": ("Babs Seed", "Babs", "Babsseed"),
         # Royalty
         # 'Princess' and 'Principal' have no sentiment in VADER, so we
         # don't have to worry about those titles
         "Celestia": ("Celestia",),
         "Luna": ("Luna",),
-        "Cadance": ("Cadance",),
+        "Cadance": ("Cadance", "Cadence"),
         "Shining Armor": ("Shining Armor", "Shining",),
         "Flurry Heart": ("Flurry Heart",),
         # Recurring Villains (possibly reformed)
@@ -42,13 +42,14 @@ characters = {
         # start of a sentence
         #"Sunset Shimmer": ("Sunset Shimmer", "Sunset"),
         #"Starlight Glimmer": ("Starlight Glimmer", "Starlight"),
-        # hack to track the sentiment of the overall text
-        "text": (),
 }
+
+characters_plus_text = dict(characters)
+characters_plus_text["text"] = ()
 
 main6 = ["Applejack", "Fluttershy", "Pinkie Pie", "Rainbow Dash", "Rarity", "Twilight Sparkle"]
 
 class story_length:
     # Short stories have <= `short' sentences
     short = 100
-    med = 2500
+    med = 1000

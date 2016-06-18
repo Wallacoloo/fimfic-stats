@@ -7,7 +7,7 @@ from math import cos, pi, tan
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
-from common import main6, story_length
+from common import characters, main6, story_length
 
 # Based on http://helmet.kafuka.org/ponycolors/
 colors = {
@@ -17,6 +17,24 @@ colors = {
     "Rainbow Dash": "#9EDBF8",
     "Rarity": "#BEC2C3",
     "Twilight Sparkle": "#D19FE4",
+
+    "Spike": "#51C456",
+    "Apple Bloom": "#F74160",
+    "Scootaloo": "#F37033",
+    "Sweetie Belle": "#B28DC0",
+    "Babs Seed": "#A9541B",
+    "Celestia": "#FFD791",
+    "Luna": "#2E4883",
+    "Cadance": "#FFCCE6",
+
+    "Shining Armor": "#355397",
+    "Flurry Heart": "#00ADA8",
+
+    "Nightmare Moon": "#140A2E",
+    "Discord": "#E3AE81",
+    "Gilda": "#AA7053",
+    "Trixie": "#71B8EF",
+
     "text": "#101010",
 }
 
@@ -168,6 +186,29 @@ def story_lengths(agg):
     plt.ylabel("Count")
     plt.title("Number of stories by length")
 
+def character_mentions(agg, chars=characters.keys(), mode="sentence"):
+    """Plot the number of times each character is mentioned by name
+    """
+    pdata = []
+    for char in chars:
+        pdata.append([agg["char_mentions"][char]["in_a_" + mode], char])
+
+    pdata.sort(reverse=True)
+    labels = [p[1] for p in pdata]
+    xdata = range(len(pdata))
+    ydata = [p[0] for p in pdata]
+    colors_ = [colors.get(p[1], "#000000") for p in pdata]
+    for lbl, x, y, c in zip(labels, xdata, ydata, colors_):
+        plt.bar(x, y, color=c, label=lbl)
+    # pdata is now sorted by number of mentions
+
+    plt.ylabel("Count")
+    mode_plural = "sentences" if mode == "sentence" else "stories"
+    plt.title("Number of {} in which a character appears by name".format(mode_plural))
+
+    plt.legend(loc="best", prop=legendFont)
+    
+
 
 
 figure_functions = { \
@@ -182,7 +223,9 @@ figure_functions = { \
     "char_senti_by_storyarc_short.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_short",)),
     "char_senti_by_storyarc_med.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_med",)),
     "char_senti_by_storyarc_long.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_long",)),
-    "story_lengths.png": story_lengths
+    "story_lengths.png": story_lengths,
+    "character_mentions_in_a_sentence.png": character_mentions,
+    "character_mentions_in_a_story.png": lambda agg: character_mentions(agg, mode="story"),
 }
 
 

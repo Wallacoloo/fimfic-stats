@@ -6,7 +6,7 @@ associations to a json file
 import json, sys, warnings
 from nltk import tokenize
 
-from common import characters
+from common import characters_plus_text
 
 with warnings.catch_warnings():
     # The nltk.twitter library emits a completely irrelevant warning
@@ -22,13 +22,13 @@ def analyze(f):
     sentences = tokenize.sent_tokenize(f.read())
 
     sentiment = {}
-    for c in characters:
+    for c in characters_plus_text:
         sentiment[c] = {"raw": []}
 
     for s in sentences:
         # Try to assign the sentiment to a SINGLE character
         c_in_s = {}
-        for c, nicks in characters.items():
+        for c, nicks in characters_plus_text.items():
             for nick in nicks:
                 if nick in s:
                     c_in_s[c] = nick

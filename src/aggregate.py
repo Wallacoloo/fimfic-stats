@@ -5,7 +5,7 @@ conclusions of the entire set, or on individual authors, etc.
 
 import json, os, sys
 
-from common import characters, story_length
+from common import characters_plus_text, story_length
 
 def average(data):
     s = 0
@@ -26,8 +26,8 @@ def avg_data_at_percent(data, percent):
     0 and 100 (percent) are inclusive. This is done by making the first
     and last percent on half-length.
     """
-    idx_start = int(max(0, (percent-0.5)/100*len(data)))
-    idx_end = int(min(len(data), (percent+0.5)/100*len(data)))
+    idx_start = max(0, int((percent-0.5)*len(data)/100))
+    idx_end = min(len(data), int((percent+0.5)*len(data)/100))
     idx_end = max(idx_start+1, idx_end) # need at least one sample.
     return average(data[idx_start:idx_end])
 
@@ -36,9 +36,12 @@ def aggregate(index, src_paths):
     """
     results = {}
     sentiment = {}
+    # Number of times each character is mentioned by name
+    char_mentions = {}
     results["sentiment"] = sentiment
     results["story_lengths"] = []
-    for c in tuple(characters.keys()) + ("text",):
+    results["char_mentions"] = char_mentions
+    for c in tuple(characters_plus_text.keys()):
         # Each month contains a sum of sentiment and a count of sentiments
         # which can be used to derive the average
         sentiment[c] = {
@@ -50,6 +53,10 @@ def aggregate(index, src_paths):
             "storyarc_percent_short": [ {"sum": 0, "count": 0} for i in range(101)],
             "storyarc_percent_med": [ {"sum": 0, "count": 0} for i in range(101)],
             "storyarc_percent_long": [ {"sum": 0, "count": 0} for i in range(101)],
+        }
+        char_mentions[c] = {
+            "in_a_sentence": 0,
+            "in_a_story": 0
         }
 
     for srcno, p in enumerate(src_paths):
@@ -70,25 +77,35 @@ def aggregate(index, src_paths):
 
         results["story_lengths"].append(num_sentences)
 
-        for c in tuple(characters.keys()) + ("text",):
+        for c in tuple(characters_plus_text.keys()):
             senti = datum["sentiment"][c]["raw"]
-            sentiment[c]["months"][pub_month]["sum"] += sum(senti)
-            sentiment[c]["months"][pub_month]["count"] += len(senti)
+            if senti:
+                # The character's score would default to 0 if
+                # the character flat-out doesn't ever appear in
+                # the story; although this is OK for most measurements,
+                # it would incorrectly drag down the character's
+                # portrayal based on percentage into the story
+                # (sentiment[c]["storyarc_percent_x"])
+                sentiment[c]["months"][pub_month]["sum"] += sum(senti)
+                sentiment[c]["months"][pub_month]["count"] += len(senti)
 
-            # Determine which storyarc sets this story applies to
-            apropo_sets = [sentiment[c]["storyarc_percent"]]
-            if num_sentences <= story_length.short:
-                apropo_sets.append(sentiment[c]["storyarc_percent_short"])
-            elif num_sentences <= story_length.med:
-                apropo_sets.append(sentiment[c]["storyarc_percent_med"])
-            else:
-                apropo_sets.append(sentiment[c]["storyarc_percent_long"])
+                char_mentions[c]["in_a_sentence"] += len(senti)
+                char_mentions[c]["in_a_story"] += bool(senti)
 
-            for percent in range(101):
-                arc_senti = avg_data_at_percent(senti, percent)
-                for arcs in apropo_sets:
-                    arcs[percent]["sum"] += arc_senti
-                    arcs[percent]["count"] += 1
+                # Determine which storyarc sets this story applies to
+                apropo_sets = [sentiment[c]["storyarc_percent"]]
+                if num_sentences <= story_length.short:
+                    apropo_sets.append(sentiment[c]["storyarc_percent_short"])
+                elif num_sentences <= story_length.med:
+                    apropo_sets.append(sentiment[c]["storyarc_percent_med"])
+                else:
+                    apropo_sets.append(sentiment[c]["storyarc_percent_long"])
+
+                for percent in range(101):
+                    arc_senti = avg_data_at_percent(senti, percent)
+                    for arcs in apropo_sets:
+                        arcs[percent]["sum"] += arc_senti
+                        arcs[percent]["count"] += 1
 
     return results
 
