@@ -83,7 +83,7 @@ def smooth(month_data=None, percent_data=None):
     return y
 
 
-def char_senti_by_month(agg, chars=main6, do_smooth=False):
+def char_senti_by_month(agg, chars=main6, do_smooth=False, ylim=(0.00, 0.13)):
     """Create a plot displaying typical character sentiment
     on fimfiction vs time.
     """
@@ -110,10 +110,9 @@ def char_senti_by_month(agg, chars=main6, do_smooth=False):
     title_post = " (smoothed)" if do_smooth else ""
     plt.title(title_pre + " sentiment vs. time" + title_post)
 
-    #plt.xlim(0, 6)
-    plt.ylim(0.00, 0.13)
+    if ylim: plt.ylim(*ylim)
     if len(pdata) > 1:
-        plt.legend(loc="best", prop=legendFont)
+        plt.legend(loc="best", prop=legendFont, ncol=len(chars)//8)
 
 def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False, arcs=("",)):
     """Plot the sentiment of the average story at any percentage through
@@ -156,7 +155,7 @@ def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False, arcs=("",)):
     title = title_pre + " sentiment by location within story"
     plt.title(title)
 
-    plt.ylim(0.00, 0.13)
+    plt.ylim(0.00, 0.17)
     if len(pdata) > 1:
         plt.legend(loc="best", prop=legendFont)
 
@@ -214,6 +213,7 @@ def character_mentions(agg, chars=characters.keys(), mode="sentence"):
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
     "char_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, do_smooth=True),
+    "char_senti_by_month_all_smooth.png": lambda agg: char_senti_by_month(agg, do_smooth=True, chars=characters, ylim=(-.15,.5)),
     "text_senti_by_month.png": lambda agg: char_senti_by_month(agg, chars=("text",)),
     "text_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, chars=("text",), do_smooth=True),
     "text_senti_by_storyarc.png": text_senti_by_storyarc,
