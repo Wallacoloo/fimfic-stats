@@ -17,7 +17,7 @@ with warnings.catch_warnings():
 
 sid = SentimentIntensityAnalyzer()
 
-def analyze(f):
+def analyze_senti(f):
     """Return a dict of information about the file f"""
     sentences = tokenize.sent_tokenize(f.read())
 
@@ -68,6 +68,6 @@ if __name__ == "__main__":
     else:
         in_path, out_path = sys.argv[1:]
         in_file = open(in_path)
-        out_dict = analyze(in_file)
+        out_dict = analyze_senti(in_file)
         out_file = open(out_path, "w")
         out_file.write(json.dumps(out_dict))
