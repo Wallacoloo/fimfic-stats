@@ -6,7 +6,7 @@ associations to a json file
 import json, sys, warnings
 from nltk import tokenize
 
-from common import characters_plus_text
+from common import attribute_sentence_to_char, characters_plus_text
 
 with warnings.catch_warnings():
     # The nltk.twitter library emits a completely irrelevant warning
@@ -26,19 +26,6 @@ def analyze_senti(f):
         sentiment[c] = {"raw": []}
 
     for s in sentences:
-        # Try to assign the sentiment to a SINGLE character
-        c_in_s = {}
-        for c, nicks in characters_plus_text.items():
-            for nick in nicks:
-                if nick in s:
-                    c_in_s[c] = nick
-                    break
-
-        # Replace all character names with a neutral word
-        # sum() is used to flatten the dict items
-        for nick in c_in_s.values():
-            s = s.replace(nick, "it")
-
         if len(s) > 5000:
             # VADER seems to hang on exceptionally long sentences.
             # 5000 characters seems excessive for a single sentence,
@@ -47,11 +34,14 @@ def analyze_senti(f):
             print("Warning: sentence is > 5000 chars. Skipping: %s [...]" %s[:400])
             break
 
+        # Attribute the sentiment to a single character, if applicable
+        # and remove all names
+        c_in_s, s = attribute_sentence_to_char(s)
+
         compound = sid.polarity_scores(s)["compound"]
         # Track sentiment of the overall text
         sentiment["text"]["raw"].append(compound)
 
-        # Attribute the sentiment to a single character, if applicable
         if len(c_in_s) == 1:
             c, = c_in_s.keys()
             sentiment[c]["raw"].append(compound)

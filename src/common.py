@@ -53,3 +53,24 @@ class story_length:
     # Short stories have <= `short' sentences
     short = 100
     med = 1000
+
+
+def attribute_sentence_to_char(sentence, chars=characters_plus_text):
+    """Search for any occurrences of the characters' names
+    or nicknames inside the sentence, remove them, and then return the
+    names of the characters found and a sentence with their names removed.
+    """
+
+    c_in_s = {}
+    for c, nicks in characters_plus_text.items():
+        for nick in nicks:
+            if nick in sentence:
+                c_in_s[c] = nick
+                break
+
+    # Replace all character names with a neutral word
+    # sum() is used to flatten the dict items
+    for nick in c_in_s.values():
+        sentence = sentence.replace(nick, "it")
+
+    return c_in_s.keys(), sentence
