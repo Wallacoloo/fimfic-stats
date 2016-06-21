@@ -32,7 +32,7 @@ def analyze_senti(f):
             # and no doubt, it is. Thank "The Longest Trollfic Ever",
             # by "Troll": https://www.fimfiction.net/story/30328/the-longest-trollfic-ever
             print("Warning: sentence is > 5000 chars. Skipping: %s [...]" %s[:400])
-            break
+            continue
 
         # Attribute the sentiment to a single character, if applicable
         # and remove all names
