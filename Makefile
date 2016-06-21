@@ -6,7 +6,8 @@ EBOOK_CONVERT=ebook-convert
 # The path to EVERY epub, relative to archive/epub/
 EPUBS=$(patsubst $(ARCHIVE)/epub/%,%,$(shell find $(ARCHIVE)/epub/ -name *.epub))
 TXTS=$(addprefix build/,$(EPUBS:.epub=.txt))
-SENTIMENTS=$(TXTS:.txt=.sentiment.json)
+SENTIMENT_JSONS=$(TXTS:.txt=.sentiment.json)
+WORDS_JSONS=$(TXTS:.txt=.words.json)
 AGG_FILE=build/aggregated.json
 PLOTS=$(addprefix build/plot/, \
 	char_senti_by_month.png char_senti_by_month_smooth.png \
@@ -31,8 +32,12 @@ build/%.txt: $(ARCHIVE)/epub/%.epub
 %.sentiment.json: %.txt
 	./src/analyze_senti.py $^ $@
 
+# Word-association analysis
+%.words.json: %.txt
+	./src/analyze_words.py $^ $@
+
 # Aggregate analyses
-$(AGG_FILE): $(SENTIMENTS)
+$(AGG_FILE): $(SENTIMENT_JSONS) $(WORDS_JSONS)
 	./src/aggregate.py $(ARCHIVE)/index.json build/ $@
 
 # Generate plots:
