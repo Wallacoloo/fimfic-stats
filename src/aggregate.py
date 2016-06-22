@@ -38,9 +38,14 @@ def aggregate(index, src_paths):
     sentiment = {}
     # Number of times each character is mentioned by name
     char_mentions = {}
+    associations = {}
+    # "char1,char2": {"in_a_sentence": <int>, "in_a_story": <int>}
+    char_pairs = {}
     results["sentiment"] = sentiment
     results["story_lengths"] = []
     results["char_mentions"] = char_mentions
+    results["associations"] = associations
+    results["char_pairs"] = char_pairs
     for c in tuple(characters_plus_text.keys()):
         # Each month contains a sum of sentiment and a count of sentiments
         # which can be used to derive the average
@@ -58,17 +63,21 @@ def aggregate(index, src_paths):
             "in_a_sentence": 0,
             "in_a_story": 0
         }
+        # "word": <int>
+        associations[c] = {}
 
-    for srcno, p in enumerate(src_paths):
+    for srcno, p_senti in enumerate(src_paths):
         if srcno % 10000 == 0: print('story:', srcno)
         # Special thanks to this story by Sharp Spark for having not
         # a single English character in his title, making parsing the
         # id excessively complicated: https://www.fimfiction.net/story/269475
-        story_id = p.split("/")[-1].replace(".sentiment.json","").split("-")[-1]
+        story_id = p_senti.split("/")[-1].replace(".sentiment.json","").split("-")[-1]
         story_meta = index[story_id]
-        f = open(p, "r")
-        datum = json.loads(f.read())
-        num_sentences = len(datum["sentiment"]["text"]["raw"])
+        datum_senti = json.loads(open(p_senti, "r").read())
+        p_words = p_senti.replace(".sentiment.json", ".words.json")
+        datum_words = json.loads(open(p_words, "r").read())
+
+        num_sentences = len(datum_senti["sentiment"]["text"]["raw"])
         # Sentiment data is unavailable on a per-chapter basis, so
         # we generalize them to the average publication date.
         avg_pub_date = average(ch["date_modified"] for ch in story_meta["chapters"])
@@ -77,8 +86,9 @@ def aggregate(index, src_paths):
 
         results["story_lengths"].append(num_sentences)
 
+        # aggregate the sentiments
         for c in tuple(characters_plus_text.keys()):
-            senti = datum["sentiment"][c]["raw"]
+            senti = datum_senti["sentiment"][c]["raw"]
             if senti:
                 # The character's score would default to 0 if
                 # the character flat-out doesn't ever appear in
@@ -106,6 +116,21 @@ def aggregate(index, src_paths):
                     for arcs in apropo_sets:
                         arcs[percent]["sum"] += arc_senti
                         arcs[percent]["count"] += 1
+
+        # Aggregate the character pairs
+        for char_pair, count in datum_words["char_pairs"].items():
+            it = char_pairs.get(char_pair,
+                dict(in_a_story=0, in_a_sentence=0))
+            it["in_a_sentence"] += count
+            it["in_a_story"] += 1
+            char_pairs[char_pair] = it
+
+        # Aggregate the word associations
+        for char in characters_plus_text:
+            for word in datum_words["associations"][char]:
+                num_seen = associations[char].get(word, 0)
+                associations[char][word] = num_seen + 1
+
 
     return results
 
