@@ -112,7 +112,7 @@ def char_senti_by_month(agg, chars=main6, do_smooth=False, ylim=(0.00, 0.13)):
 
     if ylim: plt.ylim(*ylim)
     if len(pdata) > 1:
-        plt.legend(loc="best", prop=legendFont, ncol=len(chars)//8)
+        plt.legend(loc="best", prop=legendFont, ncol=1+len(chars)//12)
 
 def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False, arcs=("",)):
     """Plot the sentiment of the average story at any percentage through
