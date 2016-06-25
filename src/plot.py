@@ -219,6 +219,41 @@ def char_pairs(agg):
 
     plt.legend(loc="best", prop=legendFont)
     
+def most_common_words(agg, char="text"):
+    """Plot the words most commonly associated with the given character
+    """
+    # Create counts of all words that are found alongside ANY character
+    all_words = {}
+    for c in characters:
+        for w, v in agg["associations"][c].items():
+            all_words[w] = all_words.get(w, 0) + v
+    # Normalize:
+    num_words = sum(all_words.values())
+    for k, v in all_words.items():
+        all_words[k] = v/num_words
+
+    def is_nontrivial_word(w, norm):
+        """Avoid reporting uninteresting words.
+        """
+        return norm > 1.5*all_words[w]
+
+    assoc = agg["associations"][char]
+    num_words = sum(assoc.values())
+    # Filter non-interesting words and ones which are part of the character's name
+    eligible = [w for w in assoc.keys() if is_nontrivial_word(w, norm=assoc[w]/num_words) and w not in char.lower().split(" ")]
+    top = sorted(eligible, key=lambda w: assoc[w], reverse=True)[:20]
+
+    for idx, word in enumerate(top):
+        plt.bar(idx, assoc[word], label=word)
+
+    plt.ylabel("Count")
+    if char == "text":
+        title = "Most common words found across all text on fimfiction*"
+    else:
+        title = "Most common words found in sentences where {} is mentioned by name*".format(char)
+    plt.title(title)
+
+    plt.legend(loc="best", prop=legendFont)
 
 
 
@@ -240,6 +275,13 @@ figure_functions = { \
     "character_mentions_in_a_sentence.png": character_mentions,
     "character_mentions_in_a_story.png": lambda agg: character_mentions(agg, mode="story"),
     "char_pairs.png": char_pairs,
+    "most_common_words.png": most_common_words,
+    "most_common_words_aj.png": lambda agg: most_common_words(agg, "Applejack"),
+    "most_common_words_fs.png": lambda agg: most_common_words(agg, "Fluttershy"),
+    "most_common_words_pp.png": lambda agg: most_common_words(agg, "Pinkie Pie"),
+    "most_common_words_rd.png": lambda agg: most_common_words(agg, "Rainbow Dash"),
+    "most_common_words_ra.png": lambda agg: most_common_words(agg, "Rarity"),
+    "most_common_words_ts.png": lambda agg: most_common_words(agg, "Twilight Sparkle"),
 }
 
 
