@@ -29,8 +29,8 @@ def analyze_words(f):
         associations[c] = {}
 
     sentences = tokenize.sent_tokenize(f.read())
-    for s in sentences:
-        c_in_s, s = attribute_sentence_to_char(s)
+    for s_ in sentences:
+        c_in_s, s = attribute_sentence_to_char(s_)
         pair_name = ",".join(sorted(c_in_s))
 
         # Increment the number of times this pair has been seen
@@ -47,7 +47,7 @@ def analyze_words(f):
             # Remove extra punctuation
             w = "".join(l for l in w if l in "abcdefghijklmnopqrstuvwxyz-'")
             w = w.strip("'")
-            if w: words_fix.append(w)
+            if w: words_fixed.append(w)
         
         for c in tuple(c_in_s) + ("text",):
             for word in words_fixed:
