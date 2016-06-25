@@ -40,16 +40,19 @@ def analyze_words(f):
         # Note: it also turns end-quotes (") into "''" and start-quotes (") into "``"
         # We don't care about that - only the actual words
         words = tokenize.word_tokenize(s.lower().replace("'", '`'))
+        words_fixed = []
+        for w in words:
+            # Undo the contraction hack
+            w = w.replace("`", "'")
+            # Remove extra punctuation
+            w = "".join(l for l in w if l in "abcdefghijklmnopqrstuvwxyz-'")
+            w = w.strip("'")
+            if w: words_fix.append(w)
         
         for c in tuple(c_in_s) + ("text",):
-            for word in words:
-                # Undo the contraction hack
-                word = word.replace("`", "'")
-                # Remove extraneous punctuation
-                word = word.strip("'")
-                if word:
-                    # Increment the number of times this word has been seen
-                    associations[c][word] = associations[c].get(word, 0) + 1
+            for word in words_fixed:
+                # Increment the number of times this word has been seen
+                associations[c][word] = associations[c].get(word, 0) + 1
             
     return dict(associations=associations, char_pairs=char_pairs)
 
