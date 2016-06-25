@@ -11,7 +11,7 @@ characters = {
         "Applejack": ("Applejack",),
         "Fluttershy": ("Fluttershy",),
         "Pinkie Pie": ("Pinkie Pie", "Pinkie",),
-        "Rainbow Dash": ("Rainbow Dash", "Rainbow", "Dash",),
+        "Rainbow Dash": ("Rainbow Dash", "Rainbow", "Dashie", "Dash",),
         "Rarity": ("Rarity",),
         "Twilight Sparkle": ("Twilight Sparkle", "Twilight", "Sparkle",),
         "Spike": ("Spike",),
@@ -44,8 +44,7 @@ characters = {
         #"Starlight Glimmer": ("Starlight Glimmer", "Starlight"),
 }
 
-characters_plus_text = dict(characters)
-characters_plus_text["text"] = ()
+characters_plus_text = dict(text=(), **characters)
 
 main6 = ["Applejack", "Fluttershy", "Pinkie Pie", "Rainbow Dash", "Rarity", "Twilight Sparkle"]
 
