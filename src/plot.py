@@ -203,6 +203,21 @@ def character_mentions(agg, chars=characters.keys(), mode="sentence"):
     plt.title("Number of {} in which a character appears by name".format(mode_plural))
 
     plt.legend(loc="best", prop=legendFont)
+
+def char_pairs(agg):
+    """Plot the most common character pairings (based on the number of
+    stories that mention the character at least once).
+    """
+    # Only consider pairs of 2+ characters
+    eligible = [k for k in agg["char_pairs"].keys() if "," in k]
+    top = sorted(eligible, key=lambda p: agg["char_pairs"][p]["in_a_story"], reverse=True)[:12]
+    for idx, pairname in enumerate(top):
+        plt.bar(idx, agg["char_pairs"][pairname]["in_a_story"], label=pairname)
+
+    plt.ylabel("Count")
+    plt.title("Most common characters to appear in the same story")
+
+    plt.legend(loc="best", prop=legendFont)
     
 
 
@@ -224,6 +239,7 @@ figure_functions = { \
     "story_lengths_lin_bins.png": lambda agg: story_lengths(agg, log_bins=False),
     "character_mentions_in_a_sentence.png": character_mentions,
     "character_mentions_in_a_story.png": lambda agg: character_mentions(agg, mode="story"),
+    "char_pairs.png": char_pairs,
 }
 
 
