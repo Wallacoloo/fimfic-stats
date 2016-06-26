@@ -3,8 +3,11 @@ Pre-requisites
 
 Performing the analysis requires `ebook-convert`, as well as a python 3
 installation, the python3 `nltk` library and the SentiWordNet database
-installed systemwide or into `~/nltk_data`
-For Arch users, the relevant packages are `ebook-convert python-nltk nltk-data`.
+installed systemwide or into `~/nltk_data`.
+The `pyenchant` Python library is also needed (specifically, the `en_US` dictionary).
+
+For Arch users, the relevant packages can be installed via:
+`# pacman -S ebook-convert python-nltk nltk-data python-pyenchant`.
 
 You will also need to download the fimfiction dump and extract it to `res/fimfarchive-20160525`.
 The fimfiction dumps can be found on JockeTF's
