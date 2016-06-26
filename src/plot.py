@@ -6,6 +6,7 @@ import datetime, json, os.path, sys
 from math import cos, pi, tan
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
+import enchant
 
 from common import characters, main6, story_length
 
@@ -37,6 +38,20 @@ colors = {
 
     "text": "#101010",
 }
+
+# Words that are used as common-speech in canon
+fim_words = set([
+    "alicorn",
+    "anypony",
+    "canterlot",
+    "everypony",
+    "equestria",
+    "fillydelphia",
+    "manehatten",
+    "nopony",
+    "ponyville",
+    "somepony",
+])
 
 legendFont = FontProperties()
 legendFont.set_size('small')
@@ -235,7 +250,7 @@ def most_common_words(agg, char="text"):
     def is_nontrivial_word(w, norm):
         """Avoid reporting uninteresting words.
         """
-        return norm > 1.5*all_words[w]
+        return norm > 1.5*all_words.get(w, 0)
 
     assoc = agg["associations"][char]
     num_words = sum(assoc.values())
@@ -244,8 +259,7 @@ def most_common_words(agg, char="text"):
     top = sorted(eligible, key=lambda w: assoc[w], reverse=True)[:20]
 
     for idx, word in enumerate(top):
-        plt.bar(idx, assoc[word], label=word)
-
+        plt.bar(idx, assoc[word], label="#{}. {}".format(1+idx, word))
     plt.ylabel("Count")
     if char == "text":
         title = "Most common words found across all text on fimfiction*"
@@ -253,8 +267,34 @@ def most_common_words(agg, char="text"):
         title = "Most common words found in sentences where {} is mentioned by name*".format(char)
     plt.title(title)
 
-    plt.legend(loc="best", prop=legendFont)
+    plt.xticks([i+0.5 for i in range(len(top))], [str(1+i) for i in range(len(top))])
 
+    plt.legend(loc="best", prop=legendFont, ncol=2)
+
+def most_common_nonwords(agg, char="text"):
+    """Plot the most common non-words
+    """
+    dictionary = enchant.Dict("en_US")
+    def is_nonword(w):
+        return w not in fim_words and not dictionary.check(w) \
+          and not any(similar.lower().replace("-","")==w for similar in dictionary.suggest(w))
+
+    assoc = agg["associations"][char]
+    ranked = sorted(assoc.keys(), key=lambda w: assoc[w], reverse=True)
+    eligible = (w for w in ranked if is_nonword(w))
+    top = [next(eligible) for i in range(20)]
+
+    for idx, word in enumerate(top):
+        plt.bar(idx, assoc[word], label=word)
+
+    plt.ylabel("Count")
+    if char == "text":
+        title = "Most common non-words found across all text on fimfiction*"
+    else:
+        title = "Most common non-words found in sentences where {} is mentioned by name*".format(char)
+    plt.title(title)
+
+    plt.legend(loc="best", prop=legendFont, ncol=2)
 
 
 figure_functions = { \
@@ -282,6 +322,13 @@ figure_functions = { \
     "most_common_words_rd.png": lambda agg: most_common_words(agg, "Rainbow Dash"),
     "most_common_words_ra.png": lambda agg: most_common_words(agg, "Rarity"),
     "most_common_words_ts.png": lambda agg: most_common_words(agg, "Twilight Sparkle"),
+    "most_common_nonwords.png": most_common_nonwords,
+    "most_common_nonwords_aj.png": lambda agg: most_common_nonwords(agg, "Applejack"),
+    "most_common_nonwords_fs.png": lambda agg: most_common_nonwords(agg, "Fluttershy"),
+    "most_common_nonwords_pp.png": lambda agg: most_common_nonwords(agg, "Pinkie Pie"),
+    "most_common_nonwords_rd.png": lambda agg: most_common_nonwords(agg, "Rainbow Dash"),
+    "most_common_nonwords_ra.png": lambda agg: most_common_nonwords(agg, "Rarity"),
+    "most_common_nonwords_ts.png": lambda agg: most_common_nonwords(agg, "Twilight Sparkle"),
 }
 
 

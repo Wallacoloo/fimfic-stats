@@ -18,30 +18,35 @@ PLOTS=$(addprefix build/plot/, \
 	text_senti_by_storyarc_binned.png \
 	character_mentions_in_a_sentence.png character_mentions_in_a_story.png \
 	story_lengths.png story_lengths_lin_bins.png \
-	char_pairs.png most_common_words.png most_common_words_aj.png \
+	char_pairs.png \
+	most_common_words.png most_common_words_aj.png \
 	most_common_words_fs.png most_common_words_pp.png \
 	most_common_words_rd.png most_common_words_ra.png \
 	most_common_words_ts.png \
+	most_common_nonwords.png most_common_nonwords_aj.png \
+	most_common_nonwords_fs.png most_common_nonwords_pp.png \
+	most_common_nonwords_rd.png most_common_nonwords_ra.png \
+	most_common_nonwords_ts.png \
 )
 
 
 all: $(PLOTS)
 
 # Convert epub to txt (it may contain unicode)
-build/%.raw.txt: $(ARCHIVE)/epub/%.epub
+build/%.txt: $(ARCHIVE)/epub/%.epub
 	@mkdir -p $(dir $@)
 	$(EBOOK_CONVERT) $< $@ > /dev/null
 
 # Replace all unicode characters with their nearest ascii equivalent (we want this to detect quotation marks, etc easily).
-%.txt: %.raw.txt
+%.ansi.txt: %.txt
 	unidecode $^ > $@
 
 # Create sentiment analysis 
-%.sentiment.json: %.txt
+%.sentiment.json: %.ansi.txt
 	./src/analyze_senti.py $^ $@
 
 # Word-association analysis
-%.words.json: %.txt
+%.words.json: %.ansi.txt
 	./src/analyze_words.py $^ $@
 
 # Aggregate analyses
@@ -55,6 +60,9 @@ $(AGG_FILE): $(SENTIMENT_JSONS) $(WORDS_JSONS)
 
 clean-json:
 	find build/ -name *.json | xargs rm -f
+
+clean-plots:
+	rm -f $(PLOTS)
 
 # Handy notes for tracking make progress:
 # Obtain number of files of a specific type generated via (e.g.)
