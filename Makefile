@@ -6,6 +6,7 @@ EBOOK_CONVERT=ebook-convert
 # The path to EVERY epub, relative to archive/epub/
 EPUBS=$(patsubst $(ARCHIVE)/epub/%,%,$(shell find $(ARCHIVE)/epub/ -name *.epub))
 TXTS=$(addprefix build/,$(EPUBS:.epub=.txt))
+ANSI_TXTS=$(TXTS:.txt=.ansi.txt)
 SENTIMENT_JSONS=$(TXTS:.txt=.sentiment.json)
 WORDS_JSONS=$(TXTS:.txt=.words.json)
 AGG_FILE=build/aggregated.json
@@ -72,3 +73,6 @@ clean-plots:
 # find build/ -name *.json | wc -l
 
 .PHONY: clean-json clean-plots
+
+# Preserve all "intermediate" targets
+.SECONDARY: $(TXTS) $(ANSI_TXTS) $(WORDS_JSONS) $(SENTIMENT_JSONS) $(AGG_FILE)
