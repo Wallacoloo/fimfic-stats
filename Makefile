@@ -71,4 +71,4 @@ clean-plots:
 # Obtain number of files of a specific type generated via (e.g.)
 # find build/ -name *.json | wc -l
 
-.PHONY: clean-json
+.PHONY: clean-json clean-plots
