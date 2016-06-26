@@ -178,7 +178,7 @@ def story_lengths(agg, log_bins=True):
     """Plot a histogram depicting the lengths of stories on fimfiction
     """
 
-    plt.figure(figsize=(14, 8), dpi=180)
+    plt.figure(figsize=(14, 8), dpi=192)
     lengths = agg["story_lengths"]
     lengths.sort()
     # As of now, there are only 6 stories > 100000 sentences in length:
@@ -377,6 +377,23 @@ def most_common_titles(index):
 
     plt.legend(loc="best", prop=legendFont, ncol=2)
 
+def story_status_distr(index):
+    """Pie chart of story_status distribution (Incomplete, Hiatus, ...)
+    """
+    plt.figure(figsize=(10, 8), dpi=192)
+
+    statuses = {}
+    for story in index.values():
+        s = story["status"]
+        statuses[s] = statuses.get(s, 0) + 1
+
+    statuses = sorted(statuses.items())
+    explode = [2000/(25000+s[1]) for s in statuses]
+    plt.pie([s[1] for s in statuses], labels=[s[0] for s in statuses], explode=explode, autopct='%1.0f%%')
+
+    plt.title("Story status distribution", y=1.08)
+    # Make the pie chart circular
+    plt.axis("equal")
 
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
@@ -414,6 +431,7 @@ figure_functions = { \
     "rating_vs_title_length.png": lambda index: rating_vs_length(index, "titlelen"),
     "rating_vs_date.png": lambda index: rating_vs_length(index, "date"),
     "most_common_titles.png": most_common_titles,
+    "story_status_distr.png": story_status_distr,
 }
 
 
@@ -434,6 +452,6 @@ if __name__ == "__main__":
         if need_index:
             kwargs["index"] = json.loads(open(index_path, "r").read())
 
-        plt.figure(figsize=(12, 8), dpi=180)
+        plt.figure(figsize=(12, 8), dpi=192)
         out_figure = gen_figure(**kwargs)
         plt.savefig(out_path)
