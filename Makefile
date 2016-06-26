@@ -9,6 +9,7 @@ TXTS=$(addprefix build/,$(EPUBS:.epub=.txt))
 SENTIMENT_JSONS=$(TXTS:.txt=.sentiment.json)
 WORDS_JSONS=$(TXTS:.txt=.words.json)
 AGG_FILE=build/aggregated.json
+IDX_FILE=$(ARCHIVE)/index.json
 PLOTS=$(addprefix build/plot/, \
 	char_senti_by_month.png char_senti_by_month_smooth.png \
 	text_senti_by_month.png text_senti_by_month_smooth.png \
@@ -27,6 +28,8 @@ PLOTS=$(addprefix build/plot/, \
 	most_common_nonwords_fs.png most_common_nonwords_pp.png \
 	most_common_nonwords_rd.png most_common_nonwords_ra.png \
 	most_common_nonwords_ts.png \
+	rating_vs_length.png rating_vs_title_length.png rating_vs_date.png \
+	most_common_titles.png \
 )
 
 
@@ -54,9 +57,9 @@ $(AGG_FILE): $(SENTIMENT_JSONS) $(WORDS_JSONS)
 	./src/aggregate.py $(ARCHIVE)/index.json build/ $@
 
 # Generate plots:
-%.png: $(AGG_FILE)
+%.png: $(IDX_FILE) $(AGG_FILE)
 	mkdir -p $(dir $@)
-	./src/plot.py $(AGG_FILE) $@
+	./src/plot.py $(IDX_FILE) $(AGG_FILE) $@
 
 clean-json:
 	find build/ -name *.json | xargs rm -f

@@ -2,7 +2,7 @@
 """Plots the various aggregated data
 """
 
-import datetime, json, os.path, sys
+import datetime, inspect, json, os.path, sys
 from math import cos, pi, tan
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
@@ -299,6 +299,84 @@ def most_common_nonwords(agg, char="text"):
 
     plt.legend(loc="best", prop=legendFont, ncol=2)
 
+def rating_vs_length(index, metric="words"):
+    """Plot a histogram of avg like:(like+dislike) ratio vs length of story
+    """
+    # (length, like:dislike)
+    dpoints = []
+    for story in index.values():
+        like, dislike = story["likes"], story["dislikes"]
+        if like+dislike >= 1:
+            if metric == "words":
+                x = story["words"]
+            if metric == "titlelen":
+                # Titles can somehow be None.
+                x = len(story["title"] or "")
+            if metric == "date":
+                chapters = story["chapters"]
+                x = sum(c["date_modified"] for c in chapters)/len(chapters)
+            dpoints.append((x, (like-dislike)/(like+dislike)))
+
+    dpoints.sort(reverse=True)
+
+    # Slice the datapoints to sample the average ratio at discrete ranges
+    plot_points = []
+    if metric == "words":
+        slice_size = 1000
+        slice_distance = 50
+    else:
+        slice_size = 10000
+        slice_distance = 500
+    for i in range(0, len(dpoints)-slice_size+1, slice_distance):
+        rng = dpoints[i:i+slice_size]
+        avg_length = sum(i[0] for i in rng)/len(rng)
+        if metric == "date":
+            avg_length = datetime.datetime.fromtimestamp(avg_length)
+        avg_rating = sum(i[1] for i in rng)/len(rng)
+        plot_points.append((avg_length, avg_rating))
+
+    plot_func = plt.plot_date if metric == "date" else plt.plot
+    plot_func([i[0] for i in plot_points], [i[1] for i in plot_points], '-', lw=2.5)
+    if metric == "words":
+        plt.xscale("log")
+
+    # Labels
+    plt.ylabel("(likes-dislikes) / (likes+dislikes)")
+    if metric == "words":
+        plt.xlabel("Story length (words)")
+        plt.title("Average rating vs story length")
+    elif metric == "titlelen":
+        plt.xlabel("Title length (chars)")
+        plt.title("Average rating vs title length")
+    elif metric == "date":
+        plt.xlabel("date")
+        plt.title("Average rating vs date published")
+
+
+
+def most_common_titles(index):
+    """Histogram of the most-used titles
+    """
+
+    titles = {}
+    for story in index.values():
+        t = story["title"]
+        titles[t] = titles.get(t, 0) + 1
+
+    top = list(titles.items())
+    top.sort(key=lambda t: t[1], reverse=True)
+    top = top[:10]
+
+    for idx, (title, count) in enumerate(top):
+        plt.bar(idx, count, label="#{}. {}".format(1+idx, title))
+
+    plt.ylabel("Count")
+    plt.title("The most common story titles on Fimfiction")
+
+    plt.xticks([i+0.5 for i in range(len(top))], [str(1+i) for i in range(len(top))])
+
+    plt.legend(loc="best", prop=legendFont, ncol=2)
+
 
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
@@ -332,17 +410,30 @@ figure_functions = { \
     "most_common_nonwords_rd.png": lambda agg: most_common_nonwords(agg, "Rainbow Dash"),
     "most_common_nonwords_ra.png": lambda agg: most_common_nonwords(agg, "Rarity"),
     "most_common_nonwords_ts.png": lambda agg: most_common_nonwords(agg, "Twilight Sparkle"),
+    "rating_vs_length.png": rating_vs_length,
+    "rating_vs_title_length.png": lambda index: rating_vs_length(index, "titlelen"),
+    "rating_vs_date.png": lambda index: rating_vs_length(index, "date"),
+    "most_common_titles.png": most_common_titles,
 }
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: {} <aggregated.json> <output image file>".format(sys.argv[0]))
+    if len(sys.argv) != 4:
+        print("Usage: {} <index.json> <aggregated.json> <output image file>".format(sys.argv[0]))
     else:
-        aggregated_path, out_path = sys.argv[1:]
-        aggregated = json.loads(open(aggregated_path, "r").read())
+        index_path, aggregated_path, out_path = sys.argv[1:]
         gen_figure = figure_functions[os.path.split(out_path)[-1]]
 
+        # Lazy-load aggregated.json and index.json
+        argspec = inspect.getargspec(gen_figure)
+        need_agg, need_index = "agg" in argspec[0], "index" in argspec[0]
+
+        kwargs = {}
+        if need_agg:
+            kwargs["agg"] = json.loads(open(aggregated_path, "r").read())
+        if need_index:
+            kwargs["index"] = json.loads(open(index_path, "r").read())
+
         plt.figure(figsize=(12, 8), dpi=180)
-        out_figure = gen_figure(aggregated)
+        out_figure = gen_figure(**kwargs)
         plt.savefig(out_path)
