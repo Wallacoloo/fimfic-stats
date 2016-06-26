@@ -255,8 +255,9 @@ def most_common_words(agg, char="text"):
     assoc = agg["associations"][char]
     num_words = sum(assoc.values())
     # Filter non-interesting words and ones which are part of the character's name
-    eligible = [w for w in assoc.keys() if is_nontrivial_word(w, norm=assoc[w]/num_words) and w not in char.lower().split(" ")]
-    top = sorted(eligible, key=lambda w: assoc[w], reverse=True)[:20]
+    ranked = sorted(assoc.keys(), key=lambda w: assoc[w], reverse=True)
+    eligible = (w for w in ranked if is_nontrivial_word(w, norm=assoc[w]/num_words) and w not in char.lower().split(" "))
+    top = [next(eligible) for i in range(20)]
 
     for idx, word in enumerate(top):
         plt.bar(idx, assoc[word], label="#{}. {}".format(1+idx, word))
@@ -285,7 +286,7 @@ def most_common_nonwords(agg, char="text"):
     top = [next(eligible) for i in range(20)]
 
     for idx, word in enumerate(top):
-        plt.bar(idx, assoc[word], label=word)
+        plt.bar(idx, assoc[word], label="#{}. {}".format(1+idx, word))
 
     plt.ylabel("Count")
     if char == "text":
@@ -293,6 +294,8 @@ def most_common_nonwords(agg, char="text"):
     else:
         title = "Most common non-words found in sentences where {} is mentioned by name*".format(char)
     plt.title(title)
+
+    plt.xticks([i+0.5 for i in range(len(top))], [str(1+i) for i in range(len(top))])
 
     plt.legend(loc="best", prop=legendFont, ncol=2)
 
