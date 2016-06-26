@@ -37,7 +37,9 @@ installed systemwide or into `~/nltk_data`.
 The `pyenchant` Python library is also needed (specifically, the `en_US` dictionary).
 
 For Arch users, the relevant packages can be installed via:
-`# pacman -S ebook-convert python-nltk nltk-data python-pyenchant`.
+```
+# pacman -S ebook-convert python-nltk nltk-data python-pyenchant
+```
 
 You will also need to download the fimfiction dump and extract it to `res/fimfarchive-20160525` (the path may be edited at the top of the Makefile
 for future dumps).
@@ -69,3 +71,10 @@ Results
 ------
 
 Results should be published in a few days.
+
+
+
+License
+------
+
+All code in this repository is licensed under the terms of the GPL.
