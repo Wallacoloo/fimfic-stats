@@ -43,7 +43,7 @@ def analyze_senti(f):
         sentiment["text"]["raw"].append(compound)
 
         if len(c_in_s) == 1:
-            c, = c_in_s.keys()
+            c, = c_in_s
             sentiment[c]["raw"].append(compound)
 
     # Compute average sentiments per character and entire text
