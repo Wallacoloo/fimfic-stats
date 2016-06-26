@@ -64,6 +64,7 @@ results, and finally generate plots in the `build/plots/` directory.
 
 If you have multiple cores, I highly advise making use of those with
 `make -j<num_cores>`. The entire process takes 2-3 days on a modern mobile i5 processor and expect the `build/` directory to grow to around 20 GB.
+You can interrupt the build process at any time, and `make` will pick up where it left off the next time you invoke it.
 
 
 
