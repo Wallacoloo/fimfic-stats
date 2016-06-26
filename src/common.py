@@ -10,11 +10,11 @@ characters = {
         # Main 6 + Spike
         "Applejack": ("Applejack",),
         "Fluttershy": ("Fluttershy",),
-        "Pinkie Pie": ("Pinkie Pie", "Pinkie",),
-        "Rainbow Dash": ("Rainbow Dash", "Rainbow", "Dashie", "Dash",),
+        "Pinkie Pie": ("Pinkie Pie", "Pinkie", "Pinky"),
+        "Rainbow Dash": ("Rainbow Dash", "Rainbow", "Dashie", "Dashy", "Dashey", "Dash",),
         "Rarity": ("Rarity",),
-        "Twilight Sparkle": ("Twilight Sparkle", "Twilight", "Sparkle",),
-        "Spike": ("Spike",),
+        "Twilight Sparkle": ("Twilight Sparkle", "Twilight", "Sparkle", "Twily"),
+        "Spike": ("Spikey", "Spike",),
         # CMC
         "Apple Bloom": ("Apple Bloom", "Applebloom"),
         "Scootaloo": ("Scootaloo",),
