@@ -68,6 +68,10 @@ clean-json:
 clean-plots:
 	rm -f $(PLOTS)
 
+# Remove only empty json files (they were likely corrupted)
+clean-empty:
+	find build/ -name *.json -empty | xargs rm -f
+
 # Handy notes for tracking make progress:
 # Obtain number of files of a specific type generated via (e.g.)
 # find build/ -name *.json | wc -l
