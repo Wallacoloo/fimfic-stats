@@ -2,7 +2,7 @@
 """Plots the various aggregated data
 """
 
-import datetime, inspect, json, os.path, sys
+import datetime, inspect, json, os.path, random, sys
 from math import ceil, cos, floor, pi, tan
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
@@ -360,19 +360,23 @@ def rating_vs_length(index, metric="words", method="scatter"):
         avg_rating = sum(i[1] for i in rng)/len(rng)
         plot_points.append((avg_length, avg_rating))
 
+    xscale = "log" if metric == "words" else "linear"
     if method=="scatter":
+        # Only select a few points to avoid over-crowding.
         x, y = [i[0] for i in dpoints], [i[1] for i in dpoints]
-        plt.scatter(x, y)
+        plt.scatter(x, y, alpha=0.1)
+        plt.ylim(-1, 1)
+        #plt.hexbin(x, y, xscale=xscale, gridsize=32)
     else:
         plot_func = plt.plot_date if metric == "date" else plt.plot
         plot_func([i[0] for i in plot_points], [i[1] for i in plot_points], '-', lw=2.5)
-    if metric == "words":
-        plt.xscale("log")
+    plt.xscale(xscale)
 
     # Labels
     plt.ylabel("(likes-dislikes) / (likes+dislikes)")
     if metric == "words":
         plt.xlabel("Story length (words)")
+        plt.xlim([1e3, 1e6])
         plt.title("Average rating vs story length")
     elif metric == "titlelen":
         plt.xlabel("Title length (chars)")
@@ -496,7 +500,8 @@ figure_functions = { \
     "rating_vs_length_linear.png": lambda index: rating_vs_length(index, method="linear"),
     "rating_vs_title_length.png": lambda index: rating_vs_length(index, "titlelen"),
     "rating_vs_title_length_linear.png": lambda index: rating_vs_length(index, "titlelen", method="linear"),
-    "rating_vs_date.png": lambda index: rating_vs_length(index, "date", "linear"),
+    "rating_vs_date.png": lambda index: rating_vs_length(index, "date"),
+    "rating_vs_date_linear.png": lambda index: rating_vs_length(index, "date", method="linear"),
     "most_common_titles.png": most_common_titles,
     "story_status_distr.png": story_status_distr,
     "rating_vs_char.png": rating_vs_char,
