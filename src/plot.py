@@ -42,12 +42,15 @@ colors = {
 # Words that are used as common-speech in canon
 fim_words = set([
     "alicorn",
+    "alicorns",
     "anypony",
     "canterlot",
+    "draconequus",
     "everypony",
     "equestria",
     "fillydelphia",
     "manehattan",
+    "manticore",
     "nopony",
     "pegasi",
     "ponyville",
