@@ -3,7 +3,7 @@
 """
 
 import datetime, inspect, json, os.path, sys
-from math import cos, pi, tan
+from math import ceil, cos, floor, pi, tan
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import enchant
@@ -47,8 +47,9 @@ fim_words = set([
     "everypony",
     "equestria",
     "fillydelphia",
-    "manehatten",
+    "manehattan",
     "nopony",
+    "pegasi",
     "ponyville",
     "somepony",
 ])
@@ -57,6 +58,19 @@ legendFont = FontProperties()
 legendFont.set_size('small')
 
 cot = lambda x: 1/tan(x)
+mean = lambda x: sum(x)/len(x)
+floorto = lambda x, ival: floor(x/ival)*ival
+ceilto = lambda x, ival: ceil(x/ival)*ival
+
+def story_rating(story_info, thresh=1):
+    """Return (valid, rating) where valid indicates if the story has
+    enough likes/dislikes for the rating to be valid, rating is
+    (L-D)/(L+D), where L=likes, D=dislikes
+    """
+    L, D = story_info["likes"], story_info["dislikes"]
+    valid = L+D >= thresh
+    rating = (L-D)/max(1, L+D)
+    return valid, rating
 
 def smooth(month_data=None, percent_data=None):
     """Smooth month-based data so that the long-term trends are more visible
@@ -277,8 +291,14 @@ def most_common_nonwords(agg, char="text"):
     """
     dictionary = enchant.Dict("en_US")
     def is_nonword(w):
-        return w not in fim_words and not dictionary.check(w) \
+        if w == "": return False
+        is_nw = w not in fim_words and not dictionary.check(w) \
           and not any(similar.lower().replace("-","")==w for similar in dictionary.suggest(w))
+        if w.endswith("'s"):
+            is_nw = is_nw and is_nonword(w[:-2])
+        if "-" in w:
+            is_nw = is_nw and any(is_nonword(k) for k in w.split("-"))
+        return is_nw
 
     assoc = agg["associations"][char]
     ranked = sorted(assoc.keys(), key=lambda w: assoc[w], reverse=True)
@@ -299,14 +319,16 @@ def most_common_nonwords(agg, char="text"):
 
     plt.legend(loc="best", prop=legendFont, ncol=2)
 
-def rating_vs_length(index, metric="words"):
-    """Plot a histogram of avg like:(like+dislike) ratio vs length of story
+def rating_vs_length(index, metric="words", method="scatter"):
+    """Plot a histogram of avg like:(like+dislike) ratio vs length of story.
+    metric can be "words" or "titlelen" or "date".
+    method can be "linear" or "scatter" to indicate the display formate.
     """
     # (length, like:dislike)
     dpoints = []
     for story in index.values():
-        like, dislike = story["likes"], story["dislikes"]
-        if like+dislike >= 1:
+        valid, rating = story_rating(story, 1)
+        if valid:
             if metric == "words":
                 x = story["words"]
             if metric == "titlelen":
@@ -315,7 +337,7 @@ def rating_vs_length(index, metric="words"):
             if metric == "date":
                 chapters = story["chapters"]
                 x = sum(c["date_modified"] for c in chapters)/len(chapters)
-            dpoints.append((x, (like-dislike)/(like+dislike)))
+            dpoints.append((x, rating))
 
     dpoints.sort(reverse=True)
 
@@ -335,8 +357,12 @@ def rating_vs_length(index, metric="words"):
         avg_rating = sum(i[1] for i in rng)/len(rng)
         plot_points.append((avg_length, avg_rating))
 
-    plot_func = plt.plot_date if metric == "date" else plt.plot
-    plot_func([i[0] for i in plot_points], [i[1] for i in plot_points], '-', lw=2.5)
+    if method=="scatter":
+        x, y = [i[0] for i in dpoints], [i[1] for i in dpoints]
+        plt.scatter(x, y)
+    else:
+        plot_func = plt.plot_date if metric == "date" else plt.plot
+        plot_func([i[0] for i in plot_points], [i[1] for i in plot_points], '-', lw=2.5)
     if metric == "words":
         plt.xscale("log")
 
@@ -395,6 +421,42 @@ def story_status_distr(index):
     # Make the pie chart circular
     plt.axis("equal")
 
+def rating_vs_char(index, agg, chars=main6):
+    """Average the rating of all stories for which a given character appears.
+    So so for each character & plot adjacently.
+    """
+    pass
+    char_ratings = {}
+    for c in chars:
+        counts = agg["char_mentions"][c]["in_stories"]
+        # extract the stories in which the character appears
+        in_stories = [k for (k, count) in counts.items() if count]
+        ratings = []
+        for story_id in in_stories:
+            valid, rating = story_rating(index[story_id])
+            if valid:
+                ratings.append(rating)
+        print("found {} valid ratings for {}, avg: {}".format(len(ratings), c, mean(ratings)))
+        char_ratings[c] = mean(ratings)
+
+    # Sort by descending rating
+    chardata = sorted(char_ratings.items(), key=lambda i: -i[1])
+
+    labels = [c[0] for c in chardata]
+    xdata = range(len(chardata))
+    ydata = [c[1] for c in chardata]
+    colors_ = [colors.get(c[0], "#000000") for c in chardata]
+    for lbl, x, y, c in zip(labels, xdata, ydata, colors_):
+        plt.bar(x, y, color=c, label=lbl)
+
+    plt.ylabel("(likes-dislikes)/(likes+dislikes)")
+    plt.title("Average story rating based on character appearances")
+    plt.ylim(floorto(chardata[-1][1], 0.05), ceilto(chardata[0][1], 0.05))
+
+    plt.legend(loc="best", prop=legendFont)
+
+
+
 figure_functions = { \
     "char_senti_by_month.png": char_senti_by_month,
     "char_senti_by_month_smooth.png": lambda agg: char_senti_by_month(agg, do_smooth=True),
@@ -428,10 +490,14 @@ figure_functions = { \
     "most_common_nonwords_ra.png": lambda agg: most_common_nonwords(agg, "Rarity"),
     "most_common_nonwords_ts.png": lambda agg: most_common_nonwords(agg, "Twilight Sparkle"),
     "rating_vs_length.png": rating_vs_length,
+    "rating_vs_length_linear.png": lambda index: rating_vs_length(index, method="linear"),
     "rating_vs_title_length.png": lambda index: rating_vs_length(index, "titlelen"),
-    "rating_vs_date.png": lambda index: rating_vs_length(index, "date"),
+    "rating_vs_title_length_linear.png": lambda index: rating_vs_length(index, "titlelen", method="linear"),
+    "rating_vs_date.png": lambda index: rating_vs_length(index, "date", "linear"),
     "most_common_titles.png": most_common_titles,
     "story_status_distr.png": story_status_distr,
+    "rating_vs_char.png": rating_vs_char,
+    "rating_vs_char_all.png": lambda index, agg: rating_vs_char(index, agg, chars=characters.keys()),
 }
 
 

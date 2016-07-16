@@ -61,7 +61,10 @@ def aggregate(index, src_paths):
         }
         char_mentions[c] = {
             "in_a_sentence": 0,
-            "in_a_story": 0
+            # Count of # of stories the character appears (redundant)
+            "in_a_story": 0,
+            # map story_id -> # of sentences in which char appears
+            "in_stories": {},
         }
         # "word": <int>
         associations[c] = {}
@@ -101,6 +104,7 @@ def aggregate(index, src_paths):
 
                 char_mentions[c]["in_a_sentence"] += len(senti)
                 char_mentions[c]["in_a_story"] += bool(senti)
+                char_mentions[c]["in_stories"][story_id] = len(senti)
 
                 # Determine which storyarc sets this story applies to
                 apropo_sets = [sentiment[c]["storyarc_percent"]]
@@ -120,9 +124,10 @@ def aggregate(index, src_paths):
         # Aggregate the character pairs
         for char_pair, count in datum_words["char_pairs"].items():
             it = char_pairs.get(char_pair,
-                dict(in_a_story=0, in_a_sentence=0))
+                dict(in_a_story=0, in_a_sentence=0, in_stories={}))
             it["in_a_sentence"] += count
             it["in_a_story"] += 1
+            it["in_stories"][story_id] = count
             char_pairs[char_pair] = it
 
         # Aggregate the word associations

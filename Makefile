@@ -29,8 +29,11 @@ PLOTS=$(addprefix build/plot/, \
 	most_common_nonwords_fs.png most_common_nonwords_pp.png \
 	most_common_nonwords_rd.png most_common_nonwords_ra.png \
 	most_common_nonwords_ts.png \
-	rating_vs_length.png rating_vs_title_length.png rating_vs_date.png \
-	most_common_titles.png story_status_distr.png \
+	rating_vs_length.png rating_vs_length_linear.png \
+	rating_vs_title_length.png rating_vs_title_length_linear.png \
+	rating_vs_date.png \
+	most_common_titles.png story_status_distr.png rating_vs_char.png \
+	rating_vs_char_all.png \
 )
 
 
