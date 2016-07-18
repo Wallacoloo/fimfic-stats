@@ -20,7 +20,7 @@ PLOTS=$(addprefix build/plot/, \
 	text_senti_by_storyarc_binned.png \
 	character_mentions_in_a_sentence.png character_mentions_in_a_story.png \
 	story_lengths.png story_lengths_lin_bins.png \
-	char_pairs.png \
+	story_lengths_sentences.png char_pairs.png \
 	most_common_words.png most_common_words_aj.png \
 	most_common_words_fs.png most_common_words_pp.png \
 	most_common_words_rd.png most_common_words_ra.png \

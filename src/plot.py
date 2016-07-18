@@ -191,12 +191,15 @@ def text_senti_by_storyarc(agg, chars=("text",), do_smooth=False, arcs=("",)):
     if len(pdata) > 1:
         plt.legend(loc="best", prop=legendFont)
 
-def story_lengths(agg, log_bins=True):
+def story_lengths(index, agg, log_bins=True, metric="words"):
     """Plot a histogram depicting the lengths of stories on fimfiction
     """
 
     plt.figure(figsize=(14, 8), dpi=192)
-    lengths = agg["story_lengths"]
+    if metric == "words":
+        lengths = [s["words"] for s in index.values()]
+    else:
+        lengths = agg["story_lengths"]
     lengths.sort()
     # As of now, there are only 6 stories > 100000 sentences in length:
     # 100545, 106312, 106491, 133191, 136195, 151190 sentences
@@ -210,7 +213,7 @@ def story_lengths(agg, log_bins=True):
     plt.hist(lengths, bins=bins)
     plt.xscale("log")
 
-    plt.xlabel("Length (sentences)")
+    plt.xlabel("Length ({})".format(metric))
     plt.ylabel("Count")
     plt.title("Number of stories by length")
 
@@ -344,23 +347,6 @@ def rating_vs_length(index, metric="words", method="scatter"):
 
     dpoints.sort(reverse=True)
 
-    # Slice the datapoints to sample the average ratio at discrete ranges
-    plot_points = []
-    if metric == "words":
-        slice_size = 1000
-        slice_distance = 50
-    else:
-        slice_size = 10000
-        slice_distance = 500
-    for i in range(0, len(dpoints)-slice_size+1, slice_distance):
-        rng = dpoints[i:i+slice_size]
-        avg_length = sum(i[0] for i in rng)/len(rng)
-        if metric == "date":
-            avg_length = datetime.datetime.fromtimestamp(avg_length)
-        avg_rating = sum(i[1] for i in rng)/len(rng)
-        plot_points.append((avg_length, avg_rating))
-
-    xscale = "log" if metric == "words" else "linear"
     if method=="scatter":
         # Only select a few points to avoid over-crowding.
         x, y = [i[0] for i in dpoints], [i[1] for i in dpoints]
@@ -368,15 +354,26 @@ def rating_vs_length(index, metric="words", method="scatter"):
         plt.ylim(-1, 1)
         #plt.hexbin(x, y, xscale=xscale, gridsize=32)
     else:
+        # Slice the datapoints to sample the average ratio at discrete ranges
+        plot_points = []
+        slice_size = 10000
+        slice_distance = 500
+        for i in range(0, len(dpoints)-slice_size+1, slice_distance):
+            rng = dpoints[i:i+slice_size]
+            avg_length = sum(i[0] for i in rng)/len(rng)
+            if metric == "date":
+                avg_length = datetime.datetime.fromtimestamp(avg_length)
+            avg_rating = sum(i[1] for i in rng)/len(rng)
+            plot_points.append((avg_length, avg_rating))
         plot_func = plt.plot_date if metric == "date" else plt.plot
         plot_func([i[0] for i in plot_points], [i[1] for i in plot_points], '-', lw=2.5)
-    plt.xscale(xscale)
 
     # Labels
     plt.ylabel("(likes-dislikes) / (likes+dislikes)")
     if metric == "words":
         plt.xlabel("Story length (words)")
-        plt.xlim([1e3, 1e6])
+        plt.xlim([1e2, 1e6])
+        plt.xscale("log")
         plt.title("Average rating vs story length")
     elif metric == "titlelen":
         plt.xlabel("Title length (chars)")
@@ -432,7 +429,6 @@ def rating_vs_char(index, agg, chars=main6):
     """Average the rating of all stories for which a given character appears.
     So so for each character & plot adjacently.
     """
-    pass
     char_ratings = {}
     for c in chars:
         counts = agg["char_mentions"][c]["in_stories"]
@@ -478,7 +474,8 @@ figure_functions = { \
     "char_senti_by_storyarc_med.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_med",)),
     "char_senti_by_storyarc_long.png": lambda agg: text_senti_by_storyarc(agg, chars=main6, arcs=("_long",)),
     "story_lengths.png": story_lengths,
-    "story_lengths_lin_bins.png": lambda agg: story_lengths(agg, log_bins=False),
+    "story_lengths_sentences.png": lambda index, agg: story_lengths(index, agg, metric="sentences"),
+    "story_lengths_lin_bins.png": lambda index, agg: story_lengths(index, agg, log_bins=False),
     "character_mentions_in_a_sentence.png": character_mentions,
     "character_mentions_in_a_story.png": lambda agg: character_mentions(agg, mode="story"),
     "char_pairs.png": char_pairs,
