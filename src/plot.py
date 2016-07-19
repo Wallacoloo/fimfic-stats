@@ -236,6 +236,8 @@ def character_mentions(agg, chars=characters.keys(), mode="sentence"):
     plt.ylabel("Count")
     mode_plural = "sentences" if mode == "sentence" else "stories"
     plt.title("Number of {} in which a character appears by name".format(mode_plural))
+    # No x ticks.
+    plt.xticks([], [])
 
     plt.legend(loc="best", prop=legendFont)
 
@@ -247,10 +249,11 @@ def char_pairs(agg):
     eligible = [k for k in agg["char_pairs"].keys() if "," in k]
     top = sorted(eligible, key=lambda p: agg["char_pairs"][p]["in_a_story"], reverse=True)[:12]
     for idx, pairname in enumerate(top):
-        plt.bar(idx, agg["char_pairs"][pairname]["in_a_story"], label=pairname)
+        plt.bar(idx, agg["char_pairs"][pairname]["in_a_story"], label="#{}. {}".format(idx+1, pairname))
 
     plt.ylabel("Count")
     plt.title("Most common characters to appear in the same story")
+    plt.xticks([i+0.5 for i in range(len(top))], [str(1+i) for i in range(len(top))])
 
     plt.legend(loc="best", prop=legendFont)
     
@@ -455,6 +458,8 @@ def rating_vs_char(index, agg, chars=main6):
     plt.ylabel("(likes-dislikes)/(likes+dislikes)")
     plt.title("Average story rating based on character appearances")
     plt.ylim(floorto(chardata[-1][1], 0.05), ceilto(chardata[0][1], 0.05))
+    # No xticks
+    plt.xticks([], [])
 
     plt.legend(loc="best", prop=legendFont)
 
