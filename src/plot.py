@@ -286,9 +286,9 @@ def most_common_words(agg, char="text"):
         plt.bar(idx, assoc[word], label="#{}. {}".format(1+idx, word))
     plt.ylabel("Count")
     if char == "text":
-        title = "Most common words found across all text on fimfiction*"
+        title = "Most common words found across all text on fimfiction"
     else:
-        title = "Most common words found in sentences where {} is mentioned by name*".format(char)
+        title = "Most common words found in sentences where {} is mentioned by name".format(char)
     plt.title(title)
 
     plt.xticks([i+0.5 for i in range(len(top))], [str(1+i) for i in range(len(top))])
@@ -319,9 +319,9 @@ def most_common_nonwords(agg, char="text"):
 
     plt.ylabel("Count")
     if char == "text":
-        title = "Most common non-words found across all text on fimfiction*"
+        title = "Most common non-words found across all text on fimfiction"
     else:
-        title = "Most common non-words found in sentences where {} is mentioned by name*".format(char)
+        title = "Most common non-words found in sentences where {} is mentioned by name".format(char)
     plt.title(title)
 
     plt.xticks([i+0.5 for i in range(len(top))], [str(1+i) for i in range(len(top))])
