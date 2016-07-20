@@ -71,7 +71,7 @@ You can interrupt the build process at any time, and `make` will pick up where i
 Results
 ------
 
-Results should be published in a few days.
+Results can be found [here](http://mooooo.ooo/fimfic-best-pony/) along with a brief write-up.
 
 
 
