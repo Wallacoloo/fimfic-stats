@@ -78,4 +78,4 @@ Results can be found [here](http://mooooo.ooo/fimfic-best-pony/) along with a br
 License
 ------
 
-All code in this repository is licensed under the terms of the GPL.
+All code in this repository is licensed under the terms of the GPLv3. Refer to the provided `LICENSE` file for the complete text.
