@@ -35,9 +35,10 @@ PLOTS=$(addprefix build/plot/, \
 	most_common_titles.png story_status_distr.png rating_vs_char.png \
 	rating_vs_char_all.png \
 )
+TEXT_STATS=$(addprefix build/stats/, word_frequencies.json)
 
 
-all: $(PLOTS)
+all: $(PLOTS) $(TEXT_STATS)
 
 # Convert epub to txt (it may contain unicode)
 build/%.txt: $(ARCHIVE)/epub/%.epub
@@ -64,6 +65,11 @@ $(AGG_FILE): $(SENTIMENT_JSONS) $(WORDS_JSONS)
 %.png: $(IDX_FILE) $(AGG_FILE)
 	mkdir -p $(dir $@)
 	./src/plot.py $(IDX_FILE) $(AGG_FILE) $@
+
+# Generate stats:
+build/stats/%.json: $(AGG_FILE)
+	mkdir -p $(dir $@)
+	./src/text_stats.py $(AGG_FILE) $(notdir $@) > $@
 
 clean-json:
 	find build/ -name *.json | xargs rm -f
