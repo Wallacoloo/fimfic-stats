@@ -46,7 +46,7 @@ def analyze_words(f):
             w = w.replace("`", "'")
             # Remove extra punctuation
             w = "".join(l for l in w if l in "abcdefghijklmnopqrstuvwxyz-'")
-            w = w.strip("'")
+            w = w.strip("'").strip("-").strip("'")
             if w: words_fixed.append(w)
         
         for c in tuple(c_in_s) + ("text",):
