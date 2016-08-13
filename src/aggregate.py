@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 """Take precompiled statistics of each indivual story and draw
 conclusions of the entire set, or on individual authors, etc.
 """

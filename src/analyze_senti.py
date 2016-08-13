@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Analyzes a text file and outputs information about character
 associations to a json file
 """
